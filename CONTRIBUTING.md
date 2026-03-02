@@ -2,9 +2,23 @@
 
 Below you'll find a set of guidelines for how to contribute to Open Locus.
 
-## Installation & Requirements
+## Installation
 
-TBD
+Before you start contributing, ensure you have the required tools installed. For detailed setup instructions and prerequisites, see the [Installation & Requirements section in the README](README.md#installation--requirements).
+
+### Quick start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/RaoulvanWijk/OpenLocus.git
+cd OpenLocus
+
+# 2. Install all dependencies
+pnpm install
+
+# 3. Start the desktop app in development mode
+pnpm -F desktop tauri dev
+```
 
 ## Development Workflow
 
