@@ -5,10 +5,10 @@ import { invoke } from '@tauri-apps/api/core'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/')({
-  component: App,
+  component: RouteComponent,
 })
 
-function App() {
+function RouteComponent() {
   const [greetMsg, setGreetMsg] = useState('')
   const [name, setName] = useState('')
 
