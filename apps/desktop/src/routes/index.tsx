@@ -1,6 +1,6 @@
 import { Button } from '@openlocus/ui/components/button'
 import { Input } from '@openlocus/ui/components/input'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { invoke } from '@tauri-apps/api/core'
 import { useState } from 'react'
 
@@ -17,7 +17,11 @@ function RouteComponent() {
   }
 
   return (
-    <main>
+    <main className="p-8 pt-4">
+      <div className="flex justify-between">
+        <h1 className="text-2xl font-bold">Open Locus</h1>
+        <Link to="/edit">Edit note</Link>
+      </div>
       <form
         className="flex gap-2"
         onSubmit={(e) => {
