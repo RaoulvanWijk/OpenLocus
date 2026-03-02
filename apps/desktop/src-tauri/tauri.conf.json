@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "desktop",
+  "productName": "openlocus",
   "version": "0.1.0",
   "identifier": "com.openlocus.desktop",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "desktop",
+        "title": "Open Locus",
         "width": 800,
         "height": 600
       }
