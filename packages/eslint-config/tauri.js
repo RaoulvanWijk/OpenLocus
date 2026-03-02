@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint'
 import { config as baseConfig } from './base.js'
 
 /**
- * A custom ESLint configuration for libraries that use React.
+ * A custom ESLint configuration for Tauri desktop applications using React.
  *
  * @type {import("eslint").Linter.Config[]} */
 export const config = [
@@ -20,7 +20,6 @@ export const config = [
     languageOptions: {
       ...pluginReact.configs.flat.recommended.languageOptions,
       globals: {
-        ...globals.serviceworker,
         ...globals.browser,
       },
     },
@@ -29,11 +28,12 @@ export const config = [
     plugins: {
       'react-hooks': pluginReactHooks,
     },
-    settings: { react: { version: 'detect' } },
     rules: {
-      ...pluginReactHooks.configs.recommended.rules,
-      // React scope no longer necessary with new JSX transform.
       'react/react-in-jsx-scope': 'off',
+      'react-hooks/rules-of-hooks': 'error',
     },
+  },
+  {
+    ignores: ['dist/**', 'src-tauri/target/**'],
   },
 ]
