@@ -1,0 +1,5 @@
+{
+  "extends": "@openlocus/typescript-config/tauri.json",
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
