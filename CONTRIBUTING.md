@@ -2,9 +2,23 @@
 
 Below you'll find a set of guidelines for how to contribute to Open Locus.
 
-## Installation & Requirements
+## Installation
 
-TBD
+Before you start contributing, ensure you have the required tools installed. For detailed setup instructions and prerequisites, see the [Installation & Requirements section in the README](README.md#installation--requirements).
+
+### Quick start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/RaoulvanWijk/OpenLocus.git
+cd OpenLocus
+
+# 2. Install all dependencies
+pnpm install
+
+# 3. Start the desktop app in development mode
+pnpm -F desktop tauri dev
+```
 
 ## Development Workflow
 
@@ -15,6 +29,7 @@ Format: `<type>/<short-description>`
 The type should map to the Conventional Commits types (e.g., `feat`, `fix`, `docs`, `refactor`).
 
 Examples:
+
 - `feat/user-authentication`
 - `fix/mobile-header-alignment`
 
@@ -23,9 +38,10 @@ Examples:
 We use Prettier and ESLint to maintain a consistent codebase. The configuration for these tools is included directly within the project repository.
 
 To ensure your code meets our formatting standards effortlessly:
+
 1. Ensure you have followed the [installation setup](https://github.com/RaoulvanWijk/OpenLocus/blob/main/CONTRIBUTING.md#installation--requirements) to download the local `prettier` and `eslint` dependencies.
 2. Install the **Prettier** and **ESLint** extensions in your IDE.
-3. Configure your IDE so **Format on Save** is set to **Prettier**. 
+3. Configure your IDE so **Format on Save** is set to **Prettier**.
 
 All code will be linted during the CI process, and PRs with formatting or linting errors will fail the pipeline.
 
@@ -47,11 +63,12 @@ Example: `fix(ui): resolve alignment issue on mobile headers`
 
 ## Pull Requests
 
-For all Pull Requests, you should be extremely descriptive about both the problem you are solving and your proposed solution. 
+For all Pull Requests, you should be extremely descriptive about both the problem you are solving and your proposed solution.
 
 All commits within a PR are squashed when merged, using the PR title as the commit message. For that reason, please use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for your PR titles.
 
 Here are some examples:
+
 - `feat: add new feature`
 - `fix: fix bug`
 - `docs: add documentation`
@@ -62,6 +79,7 @@ Here are some examples:
 If applicable, you must indicate the affected packages or scopes in parentheses to "scope" the changes.
 
 Here are some examples:
+
 - `feat(popup): add new component`
 - `fix(background): resolve sync issue`
 

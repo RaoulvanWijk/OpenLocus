@@ -1,0 +1,11 @@
+{
+  "extends": "@openlocus/typescript-config/tauri.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@openlocus/ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
