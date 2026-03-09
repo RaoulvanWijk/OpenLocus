@@ -44,6 +44,15 @@ function RouteComponent() {
                 Edit note 789
               </Link>
             </li>
+            <li>
+              <Link
+                to="/edit/$id"
+                params={{ id: '000' }}
+                className={cn('', id === '000' && 'font-bold')}
+              >
+                Edit note 000
+              </Link>
+            </li>
           </ul>
         </nav>
       </aside>
