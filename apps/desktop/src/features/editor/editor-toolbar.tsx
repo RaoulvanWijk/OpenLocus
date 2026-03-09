@@ -1,10 +1,10 @@
-import type { Editor } from '@tiptap/react'
 import { Button } from '@openlocus/ui/components/button'
 import { Separator } from '@openlocus/ui/components/separator'
+import type { Editor } from '@tiptap/react'
 
 export function EditorToolbar({ editor }: { editor: Editor }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-gray-200 p-2">
+    <div className="flex flex-wrap items-center gap-1 border-b p-2">
       <Button
         variant="toolbar"
         size="xs"

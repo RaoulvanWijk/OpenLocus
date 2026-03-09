@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as EditorRouteRouteImport } from './routes/_editor/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EditorEditRouteImport } from './routes/_editor/edit'
+import { Route as EditorEditIdRouteImport } from './routes/_editor/edit.$id'
 
 const EditorRouteRoute = EditorRouteRouteImport.update({
   id: '/_editor',
@@ -22,32 +22,32 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EditorEditRoute = EditorEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
+const EditorEditIdRoute = EditorEditIdRouteImport.update({
+  id: '/edit/$id',
+  path: '/edit/$id',
   getParentRoute: () => EditorRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/edit': typeof EditorEditRoute
+  '/edit/$id': typeof EditorEditIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/edit': typeof EditorEditRoute
+  '/edit/$id': typeof EditorEditIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_editor': typeof EditorRouteRouteWithChildren
-  '/_editor/edit': typeof EditorEditRoute
+  '/_editor/edit/$id': typeof EditorEditIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/edit'
+  fullPaths: '/' | '/edit/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/edit'
-  id: '__root__' | '/' | '/_editor' | '/_editor/edit'
+  to: '/' | '/edit/$id'
+  id: '__root__' | '/' | '/_editor' | '/_editor/edit/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -71,22 +71,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_editor/edit': {
-      id: '/_editor/edit'
-      path: '/edit'
-      fullPath: '/edit'
-      preLoaderRoute: typeof EditorEditRouteImport
+    '/_editor/edit/$id': {
+      id: '/_editor/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/edit/$id'
+      preLoaderRoute: typeof EditorEditIdRouteImport
       parentRoute: typeof EditorRouteRoute
     }
   }
 }
 
 interface EditorRouteRouteChildren {
-  EditorEditRoute: typeof EditorEditRoute
+  EditorEditIdRoute: typeof EditorEditIdRoute
 }
 
 const EditorRouteRouteChildren: EditorRouteRouteChildren = {
-  EditorEditRoute: EditorEditRoute,
+  EditorEditIdRoute: EditorEditIdRoute,
 }
 
 const EditorRouteRouteWithChildren = EditorRouteRoute._addFileChildren(
