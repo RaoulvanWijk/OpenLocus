@@ -6,10 +6,7 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { config as baseConfig } from './base.js'
 
-/**
- * A custom ESLint configuration for Tauri desktop applications using React.
- *
- * @type {import("eslint").Linter.Config[]} */
+/** @type {import("eslint").Linter.Config[]} */
 export const config = [
   ...baseConfig,
   js.configs.recommended,
