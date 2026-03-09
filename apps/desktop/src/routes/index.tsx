@@ -17,7 +17,7 @@ function RouteComponent() {
   }
 
   return (
-    <main className="p-8 pt-4">
+    <main>
       <div className="flex justify-between">
         <h1 className="text-2xl font-bold">Open Locus</h1>
         <Link to="/edit">Edit note</Link>

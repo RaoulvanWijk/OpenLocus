@@ -7,7 +7,7 @@ export function Editor() {
   const editor = useAppEditor()
 
   return (
-    <div className="flex flex-1 flex-col rounded-sm bg-white shadow-xl shadow-black/10">
+    <div className="flex flex-1 flex-col border-l">
       {editor && (
         <>
           <EditorToolbar editor={editor} />
