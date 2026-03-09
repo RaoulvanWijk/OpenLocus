@@ -39,7 +39,7 @@ We use Prettier and ESLint to maintain a consistent codebase. The configuration 
 
 To ensure your code meets our formatting standards effortlessly:
 
-1. Ensure you have followed the [installation setup](https://github.com/RaoulvanWijk/OpenLocus/blob/main/CONTRIBUTING.md#installation--requirements) to download the local `prettier` and `eslint` dependencies.
+1. Ensure you have followed the [installation setup](https://github.com/RaoulvanWijk/OpenLocus/blob/main/CONTRIBUTING.md#installation) to download the local `prettier` and `eslint` dependencies.
 2. Install the **Prettier** and **ESLint** extensions in your IDE.
 3. Configure your IDE so **Format on Save** is set to **Prettier**.
 
