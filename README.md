@@ -110,7 +110,7 @@ OpenLocus/
 │   │   └── tauri.js              # Tauri-specific rules
 │   └── typescript-config/        # Shared tsconfig presets
 │       ├── base.json
-│       ├── tauri.json            # Presest for Tauri apps
+│       ├── tauri.json            # Preset for Tauri apps
 │       └── react-library.json    # Used by packages/ui
 │
 ├── turbo.json                    # Turborepo pipeline config (build/dev/lint order)
