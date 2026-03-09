@@ -9,12 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as EditRouteImport } from './routes/edit'
+import { Route as EditorRouteRouteImport } from './routes/_editor/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EditorEditIdRouteImport } from './routes/_editor/edit.$id'
 
-const EditRoute = EditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
+const EditorRouteRoute = EditorRouteRouteImport.update({
+  id: '/_editor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,40 +22,46 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorEditIdRoute = EditorEditIdRouteImport.update({
+  id: '/edit/$id',
+  path: '/edit/$id',
+  getParentRoute: () => EditorRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/edit': typeof EditRoute
+  '/edit/$id': typeof EditorEditIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/edit': typeof EditRoute
+  '/edit/$id': typeof EditorEditIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/edit': typeof EditRoute
+  '/_editor': typeof EditorRouteRouteWithChildren
+  '/_editor/edit/$id': typeof EditorEditIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/edit'
+  fullPaths: '/' | '/edit/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/edit'
-  id: '__root__' | '/' | '/edit'
+  to: '/' | '/edit/$id'
+  id: '__root__' | '/' | '/_editor' | '/_editor/edit/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  EditRoute: typeof EditRoute
+  EditorRouteRoute: typeof EditorRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/edit': {
-      id: '/edit'
-      path: '/edit'
-      fullPath: '/edit'
-      preLoaderRoute: typeof EditRouteImport
+    '/_editor': {
+      id: '/_editor'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof EditorRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -65,12 +71,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_editor/edit/$id': {
+      id: '/_editor/edit/$id'
+      path: '/edit/$id'
+      fullPath: '/edit/$id'
+      preLoaderRoute: typeof EditorEditIdRouteImport
+      parentRoute: typeof EditorRouteRoute
+    }
   }
 }
 
+interface EditorRouteRouteChildren {
+  EditorEditIdRoute: typeof EditorEditIdRoute
+}
+
+const EditorRouteRouteChildren: EditorRouteRouteChildren = {
+  EditorEditIdRoute: EditorEditIdRoute,
+}
+
+const EditorRouteRouteWithChildren = EditorRouteRoute._addFileChildren(
+  EditorRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  EditRoute: EditRoute,
+  EditorRouteRoute: EditorRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
