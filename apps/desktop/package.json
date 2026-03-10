@@ -17,7 +17,8 @@
     "@tiptap/react": "^3.20.0",
     "@tiptap/starter-kit": "^3.20.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "vite-tsconfig-paths": "^6.1.1"
   },
   "devDependencies": {
     "@openlocus/eslint-config": "workspace:*",
