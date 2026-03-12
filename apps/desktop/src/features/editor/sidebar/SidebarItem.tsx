@@ -21,10 +21,10 @@ export default function SidebarItem({ note }: SidebarItemProps) {
     >
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <p className={`truncate text-sm`}>{note.title}</p>
+          <p className={cn('truncate text-sm font-semibold', {"text-gray-500": note.title === 'Untitled' })}>{note.title}</p>
           <p className="mt-1 text-xs text-gray-400">{note.time}</p>
         </div>
-        <button className="hidden cursor-pointer rounded p-1 group-hover:block hover:bg-gray-200">
+        <button className="hidden cursor-pointer rounded p-1 group-hover:block hover:bg-gray-300 data-[state=selected]:hover:bg-gray-200">
           <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
             <circle cx="8" cy="8" r="1.5" fill="#6A7282" />
             <circle cx="12" cy="8" r="1.5" fill="#6A7282" />
