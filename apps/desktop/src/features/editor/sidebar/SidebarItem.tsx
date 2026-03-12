@@ -34,7 +34,7 @@ export default function SidebarItem({ note }: SidebarItemProps) {
         </div>
         <button
           onClick={() => deleteNote(note.id)}
-          className="hidden cursor-pointer rounded p-1 group-data-[state=selected]:block hover:bg-gray-200"
+          className="hidden cursor-pointer rounded p-1 group-data-[state=selected]:block group-hover:block hover:bg-gray-300 data-[state=selected]:hover:bg-gray-200"
         >
           <Trash className="size-4" />
         </button>
