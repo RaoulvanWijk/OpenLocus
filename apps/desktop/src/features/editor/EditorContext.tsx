@@ -1,11 +1,10 @@
 import { invoke } from '@tauri-apps/api/core'
 import { createContext, ReactNode, useCallback, useMemo, useState } from 'react'
 
-type Note = {
+export type Note = {
   id: string
   title: string
   time: string
-  content: string
 }
 
 type EditorContextType = {
@@ -13,13 +12,21 @@ type EditorContextType = {
   loading: boolean
   loadNotes: () => void
   createNote: () => Promise<string>
-  deleteNote: (id: string) => void
+  deleteNote: (id: string) => Promise<void>
 }
 
 export const EditorContext = createContext<EditorContextType | null>(null)
 
-export default function EditorContextProvider({ children }: { children: ReactNode }) {
-  const [availableNotes, setAvailableNotes] = useState<Note[]>([])
+type EditorContextProviderProps = {
+  initialNotes: Note[]
+  children: ReactNode
+}
+
+export default function EditorContextProvider({
+  initialNotes,
+  children,
+}: EditorContextProviderProps) {
+  const [availableNotes, setAvailableNotes] = useState<Note[]>(initialNotes)
   const [loading, setLoading] = useState(false)
 
   const loadNotes = useCallback(async () => {
@@ -32,25 +39,28 @@ export default function EditorContextProvider({ children }: { children: ReactNod
       id: doc.id,
       title: doc.title,
       time: new Date(doc.created_at).toLocaleString(),
-      content: '',
     }))
     setAvailableNotes(loaded)
     setLoading(false)
   }, [])
 
   const createNote = useCallback(async () => {
+    const existingEmpty = availableNotes.find((n) => n.title === '')
+    if (existingEmpty) {
+      return existingEmpty.id
+    }
+
     const result = await invoke<{ id: string; path: string }>('create_document', {
       path: `Untitled-${Date.now()}.md`,
     })
     const newNote: Note = {
       id: result.id,
-      title: 'Untitled',
+      title: '',
       time: new Date().toLocaleString(),
-      content: '',
     }
     setAvailableNotes((prev) => [newNote, ...prev])
     return result.id
-  }, [])
+  }, [availableNotes])
 
   const deleteNote = useCallback(async (id: string) => {
     await invoke('delete_document', { id })
@@ -62,9 +72,5 @@ export default function EditorContextProvider({ children }: { children: ReactNod
     [availableNotes, loading, loadNotes, createNote, deleteNote],
   )
 
-  return (
-    <EditorContext.Provider value={value}>
-      {children}
-    </EditorContext.Provider>
-  )
+  return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>
 }

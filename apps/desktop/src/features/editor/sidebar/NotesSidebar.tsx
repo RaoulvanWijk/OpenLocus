@@ -1,24 +1,19 @@
 import { useEditor } from '@/features/editor/hooks/use-editor'
 import { useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { useEffect } from 'react'
 import NoteItem from './NoteItem'
 
 export function NotesSidebar() {
-  const { loadNotes, availableNotes, createNote } = useEditor()
+  const { availableNotes, createNote } = useEditor()
   const navigate = useNavigate()
 
   const handleCreateNote = async () => {
     const id = await createNote()
-    navigate({ to: '/edit/$id', params: { id } })
+    navigate({ to: '/notes/$id', params: { id } })
   }
 
-  useEffect(() => {
-    loadNotes()
-  }, [])
-
   return (
-    <aside className="relative flex h-screen w-64 flex-col gap-3 bg-gray-50 p-3">
+    <aside className="relative flex h-screen w-64 flex-col gap-3 border-r bg-gray-50 p-3">
       <button
         onClick={handleCreateNote}
         className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 shadow-sm"

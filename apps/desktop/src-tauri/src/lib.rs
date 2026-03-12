@@ -13,7 +13,8 @@ pub fn run() {
             greet,
             commands::document::create_document,
             commands::document::list_documents,
-            commands::document::delete_document
+            commands::document::delete_document,
+            commands::document::get_note
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -5,7 +5,7 @@ import React from 'react'
 import { useEditor } from '../hooks/use-editor'
 
 interface NoteItemProps extends React.ComponentProps<'div'> {
-  note: { id: string; title: string; time: string; content: string }
+  note: { id: string; title: string; time: string }
 }
 
 export default function NoteItem({ note }: NoteItemProps) {
@@ -13,9 +13,14 @@ export default function NoteItem({ note }: NoteItemProps) {
   const navigate = useNavigate()
   const { id: currentId } = useParams({ strict: false })
 
+  const handleDeleteNote = async () => {
+    await deleteNote(note.id)
+    navigate({ to: '/notes' })
+  }
+
   return (
     <div
-      onClick={() => navigate({ to: '/edit/$id', params: { id: note.id } })}
+      onClick={() => navigate({ to: '/notes/$id', params: { id: note.id } })}
       data-state={currentId === note.id ? 'selected' : 'deselected'}
       className={cn(
         'group/note bg-sidebar relative z-10 cursor-pointer rounded-lg px-4 py-3 transition-colors duration-200',
@@ -28,15 +33,15 @@ export default function NoteItem({ note }: NoteItemProps) {
         <div className="min-w-0 flex-1">
           <p
             className={cn('truncate text-sm font-semibold', {
-              'text-gray-500': note.content === '' && note.title === 'Untitled',
+              'text-gray-400 italic': note.title === '',
             })}
           >
-            {note.title}
+            {note.title || 'Untitled'}
           </p>
           <p className="mt-1 text-xs text-gray-400">{note.time}</p>
         </div>
         <button
-          onClick={() => deleteNote(note.id)}
+          onClick={handleDeleteNote}
           className={cn(
             'hidden cursor-pointer rounded p-1 group-hover/note:block hover:bg-gray-300',
             'group-hover/note:block group-data-[state=selected]/note:block hover:block',

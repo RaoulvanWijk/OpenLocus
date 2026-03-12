@@ -20,9 +20,7 @@ function RouteComponent() {
     <main>
       <div className="flex justify-between">
         <h1 className="text-2xl font-bold">Open Locus</h1>
-        <Link to="/edit/$id" params={{ id: '123' }}>
-          Edit note
-        </Link>
+        <Link to="/notes">Edit notes</Link>
       </div>
       <form
         className="flex gap-2"

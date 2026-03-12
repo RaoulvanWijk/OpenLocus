@@ -15,7 +15,7 @@ export function Editor() {
   })
 
   return (
-    <div className="flex flex-1 flex-col border-l">
+    <div className="flex flex-1 flex-col">
       {editor && (
         <>
           {/* <EditorToolbar editor={editor} />

@@ -16,6 +16,14 @@ pub struct DocumentMeta {
     pub path: String,
 }
 
+#[derive(serde::Serialize)]
+pub struct DocumentContent {
+    pub id: String,
+    pub title: String,
+    pub created_at: String,
+    pub content: String,
+}
+
 fn openlocus_dir() -> Result<PathBuf, String> {
     Ok(dirs_next::home_dir()
         .ok_or("Could not resolve home directory")?
@@ -42,7 +50,7 @@ fn read_document_meta(path: &PathBuf) -> Option<DocumentMeta> {
     let frontmatter = &rest[..end];
 
     let id = parse_frontmatter_field(frontmatter, "id")?;
-    let title = parse_frontmatter_field(frontmatter, "title").unwrap_or_else(|| "Untitled".into());
+    let title = parse_frontmatter_field(frontmatter, "title").unwrap_or_default();
     let created_at = parse_frontmatter_field(frontmatter, "created_at").unwrap_or_default();
 
     Some(DocumentMeta {
@@ -97,13 +105,51 @@ pub fn delete_document(id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn get_note(id: String) -> Result<DocumentContent, String> {
+    let dir = openlocus_dir()?;
+
+    let path = fs::read_dir(&dir)
+        .map_err(|e| e.to_string())?
+        .filter_map(|entry| {
+            let path = entry.ok()?.path();
+            if path.extension()?.to_str()? == "md" {
+                let meta = read_document_meta(&path)?;
+                if meta.id == id { Some(path) } else { None }
+            } else {
+                None
+            }
+        })
+        .next()
+        .ok_or_else(|| format!("Document with id '{id}' not found"))?;
+
+    let raw = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let meta = read_document_meta(&path)
+        .ok_or_else(|| "Failed to parse document metadata".to_string())?;
+
+    // Extract body after the closing `---`
+    let body = raw
+        .strip_prefix("---\n")
+        .and_then(|rest| rest.find("\n---").map(|end| &rest[end + 4..]))
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
+    Ok(DocumentContent {
+        id: meta.id,
+        title: meta.title,
+        created_at: meta.created_at,
+        content: body,
+    })
+}
+
+#[tauri::command]
 pub fn create_document(
     path: String,
     title: Option<String>,
 ) -> Result<CreateDocumentResult, String> {
     let id = Uuid::new_v4().to_string();
     let now = Utc::now().to_rfc3339();
-    let title = title.unwrap_or_else(|| "Untitled".to_string());
+    let title = title.unwrap_or_default();
 
     let file_path: PathBuf = if PathBuf::from(&path).is_absolute() {
         PathBuf::from(&path)
@@ -115,8 +161,14 @@ pub fn create_document(
         fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
 
+    let heading = if title.is_empty() {
+        String::new()
+    } else {
+        format!("\n# {title}\n")
+    };
+
     let content = format!(
-        "---\nid: \"{id}\"\ntitle: \"{title}\"\ncreated_at: \"{now}\"\n---\n\n# {title}\n"
+        "---\nid: \"{id}\"\ntitle: \"{title}\"\ncreated_at: \"{now}\"\n---\n{heading}"
     );
 
     fs::write(&file_path, content).map_err(|e| e.to_string())?;
