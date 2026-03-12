@@ -10,7 +10,7 @@ function RouteComponent() {
   const { id } = EditRoute.useParams()
 
   return (
-    <div className="flex">
+    <div className="flex h-svh overflow-hidden">
       <aside className="bg-sidebar">
         <nav>
           <Link to="/">Back home</Link>
