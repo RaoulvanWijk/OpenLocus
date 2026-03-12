@@ -6,10 +6,8 @@ export function NotesSidebar() {
   const { loadNotes, availableNotes } = useEditor()
 
   useEffect(() => {
-    console.log("loading notes");
-    
     loadNotes()
-  }, [loadNotes])
+  }, [])
 
   return (
     <aside className="bg-gray-50 border-r border-gray-200 w-64 h-screen flex flex-col p-3 relative gap-3">
