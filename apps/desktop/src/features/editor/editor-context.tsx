@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
-import { createContext, ReactNode, useState } from 'react'
+import { createContext, ReactNode, useEffect, useState } from 'react'
 
 type Note = {
   id: string
@@ -58,8 +58,9 @@ export default function EditorContextProvider({ children }: { children: ReactNod
       selected: false,
     }
     setAvailableNotes((prev) => [newNote, ...prev])
-    selectNote(newNote.id)
+    selectNote(result.id)
   }
+  
   const deleteNote = async (id: string) => {
     await invoke('delete_document', { id })
     setAvailableNotes((prev) => {
@@ -70,19 +71,15 @@ export default function EditorContextProvider({ children }: { children: ReactNod
   }
 
   const selectNote = (id: string) => {
-    console.log(id)
-    const note = availableNotes.find((note) => note.id === id) || null
-
-    if (!note) return
-
-    setAvailableNotes((prev) =>
-      prev.map((note) => ({
+    setAvailableNotes((prev) => {
+      const updated = prev.map((note) => ({
         ...note,
         selected: note.id === id,
-      })),
-    )
-
-    setSelectedNote(note)
+      }))
+      const selected = updated.find((note) => note.id === id) || null
+      setSelectedNote(selected)
+      return updated
+    })
   }
 
   return (
