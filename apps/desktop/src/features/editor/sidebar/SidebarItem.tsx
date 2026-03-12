@@ -17,7 +17,7 @@ export default function SidebarItem({ note }: SidebarItemProps) {
         'group bg-sidebar relative cursor-pointer rounded-lg px-4 py-3 transition-colors duration-200',
         'hover:bg-gray-200',
         'data-[state=selected]:border data-[state=selected]:bg-white data-[state=selected]:text-black data-[state=selected]:shadow-sm',
-        'before:absolute before:top-0 before:bottom-0 before:left-0 before:content-[""] before:h-9/12 before:w-0.75 before:bg-[#1F2937] before:my-auto before:rounded-r-full before:opacity-0 data-[state=selected]:before:opacity-100',
+        'before:absolute before:top-0 before:bottom-0 before:left-0 before:content-[""] before:h-8/12 before:w-0.75 before:bg-[#1F2937] before:my-auto before:rounded-r-full before:opacity-0 data-[state=selected]:before:opacity-100',
       )}
     >
       <div className="flex items-center justify-between">
