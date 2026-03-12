@@ -10,7 +10,7 @@ function RouteComponent() {
 
   return (
     <main className="flex min-h-svh flex-1 flex-col">
-      <Editor />
+      <Editor key={id} />
     </main>
   )
 }
