@@ -1,4 +1,4 @@
-import EditorContextProvider from '@/features/editor/editor-context'
+import EditorContextProvider from '@/features/editor/EditorContext'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { NotesSidebar } from '../../features/editor/sidebar/NotesSidebar'
 

@@ -1,4 +1,4 @@
-import { EditorContext } from '@/features/editor/editor-context'
+import { EditorContext } from '@/features/editor/EditorContext'
 import { useContext } from 'react'
 
 export function useEditor() {

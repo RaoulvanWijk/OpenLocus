@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Editor } from '../../features/editor/editor'
 
 export const Route = createFileRoute('/_editor/edit/$id')({
   component: RouteComponent,

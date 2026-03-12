@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
-import { createContext, ReactNode, useEffect, useState } from 'react'
+import { createContext, ReactNode, useState } from 'react'
 
 type Note = {
   id: string
@@ -60,7 +60,7 @@ export default function EditorContextProvider({ children }: { children: ReactNod
     setAvailableNotes((prev) => [newNote, ...prev])
     selectNote(result.id)
   }
-  
+
   const deleteNote = async (id: string) => {
     await invoke('delete_document', { id })
     setAvailableNotes((prev) => {

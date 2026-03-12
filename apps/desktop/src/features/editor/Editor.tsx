@@ -1,6 +1,6 @@
 import { EditorContent } from '@tiptap/react'
-import { EditorBubbleMenu } from './editor-bubble-menu'
-import { EditorToolbar } from './editor-toolbar'
+import { EditorBubbleMenu } from './EditorBubbleMenu'
+import { EditorToolbar } from './EditorToolbar'
 import { useAppEditor } from './hooks/use-app-editor'
 
 export function Editor() {
