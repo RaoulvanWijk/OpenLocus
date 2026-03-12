@@ -1,4 +1,5 @@
 import { cn } from '@openlocus/ui/lib/utils'
+import { Trash } from 'lucide-react'
 import React from 'react'
 import { useEditor } from '../hooks/use-editor'
 
@@ -7,7 +8,7 @@ interface SidebarItemProps extends React.ComponentProps<'div'> {
 }
 
 export default function SidebarItem({ note }: SidebarItemProps) {
-  const { selectNote, selectedNote } = useEditor()
+  const { selectNote, selectedNote, deleteNote } = useEditor()
 
   return (
     <div
@@ -24,12 +25,11 @@ export default function SidebarItem({ note }: SidebarItemProps) {
           <p className={`truncate text-sm`}>{note.title}</p>
           <p className="mt-1 text-xs text-gray-400">{note.time}</p>
         </div>
-        <button className="hidden cursor-pointer rounded p-1 group-hover:block hover:bg-gray-200">
-          <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
-            <circle cx="8" cy="8" r="1.5" fill="#6A7282" />
-            <circle cx="12" cy="8" r="1.5" fill="#6A7282" />
-            <circle cx="4" cy="8" r="1.5" fill="#6A7282" />
-          </svg>
+        <button
+          onClick={() => deleteNote(note.id)}
+          className="hidden cursor-pointer rounded p-1 group-data-[state=selected]:block hover:bg-gray-200"
+        >
+          <Trash className="size-4" />
         </button>
       </div>
     </div>
