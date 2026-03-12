@@ -75,8 +75,6 @@ export default function EditorContextProvider({ children }: { children: ReactNod
   const [loading, setLoading] = useState(false)
 
   const loadNotes = () => {
-    console.log("loading");
-    
     setLoading(true)
     // Simulate an API call
     // TODO: Replace with real API call to fetch notes from backend
@@ -102,7 +100,7 @@ export default function EditorContextProvider({ children }: { children: ReactNod
   const selectNote = (id: string) => {
     // update selected state
     const note = availableNotes.find((note) => note.id === id) || null
-
+ 
     // TODO: Add error handling here, if note is not found
     if (!note) return
 
