@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core'
 import { createContext, ReactNode, useState } from 'react'
 
 type Note = {
@@ -20,53 +21,6 @@ type EditorContextType = {
   moveNote: (id: string, position: number) => void
 }
 
-// TODO: This is mock data, replace with backend logic once we have it set up
-const notes: Note[] = [
-  {
-    id: "1",
-    title: "Untitled",
-    time: "Just now",
-    content: "",
-    selected: true,
-  },
-  {
-    id: "2",
-    title: "Getting Started with OpenLocus",
-    time: "Today, 09:41",
-    content: "",
-    selected: false,
-  },
-  {
-    id: "3",
-    title: "Weekly Planning — March 2026",
-    time: "Today, 08:15",
-    content: "",
-    selected: false,
-  },
-  {
-    id: "4",
-    title: "Reading Notes: Deep Work",
-    time: "Yesterday, 23:30",
-    content: "",
-    selected: false,
-  },
-  {
-    id: "5",
-    title: "Project Alpha — Architecture",
-    time: "Mar 2, 2026",
-    content: "",
-    selected: false,
-  },
-  {
-    id: "6",
-    title: "Ideas & Scratchpad",
-    time: "Mar 1, 2026",
-    content: "",
-    selected: false,
-  },
-];
-
-
 export const EditorContext = createContext<EditorContextType | null>(null)
 
 export default function EditorContextProvider({ children }: { children: ReactNode }) {
@@ -74,21 +28,30 @@ export default function EditorContextProvider({ children }: { children: ReactNod
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const loadNotes = () => {
+  const loadNotes = async () => {
     setLoading(true)
-    // Simulate an API call
-    // TODO: Replace with real API call to fetch notes from backend
-    setTimeout(() => {
-      setAvailableNotes(notes)
-      setSelectedNote(notes[0] ?? null)
-      setLoading(false)
-    }, 1000)
+    const docs =
+      await invoke<{ id: string; title: string; created_at: string; path: string }[]>(
+        'list_documents',
+      )
+    const loaded: Note[] = docs.map((doc, i) => ({
+      id: doc.id,
+      title: doc.title,
+      time: new Date(doc.created_at).toLocaleString(),
+      content: '',
+      selected: i === 0,
+    }))
+    setAvailableNotes(loaded)
+    setSelectedNote(loaded[0] ?? null)
+    setLoading(false)
   }
 
-  const createNote = () => {
-    // TODO: Replace with real API call to create note in backend
+  const createNote = async () => {
+    const result = await invoke<{ id: string; path: string }>('create_document', {
+      path: `Untitled-${Date.now()}.md`,
+    })
     const newNote: Note = {
-      id: Date.now().toString(),
+      id: result.id,
       title: 'Untitled',
       time: new Date().toLocaleString(),
       content: '',
@@ -97,11 +60,19 @@ export default function EditorContextProvider({ children }: { children: ReactNod
     setAvailableNotes((prev) => [newNote, ...prev])
     selectNote(newNote.id)
   }
+  const deleteNote = async (id: string) => {
+    await invoke('delete_document', { id })
+    setAvailableNotes((prev) => {
+      const next = prev.filter((n) => n.id !== id)
+      setSelectedNote((current) => (current?.id === id ? (next[0] ?? null) : current))
+      return next
+    })
+  }
+
   const selectNote = (id: string) => {
-    // update selected state
+    console.log(id)
     const note = availableNotes.find((note) => note.id === id) || null
- 
-    // TODO: Add error handling here, if note is not found
+
     if (!note) return
 
     setAvailableNotes((prev) =>
@@ -124,7 +95,7 @@ export default function EditorContextProvider({ children }: { children: ReactNod
         createNote,
         selectNote,
         updateNote: (id: string, updates: Partial<Note>) => {},
-        deleteNote: (id: string) => {},
+        deleteNote,
         moveNote: (id: string, position: number) => {},
       }}
     >

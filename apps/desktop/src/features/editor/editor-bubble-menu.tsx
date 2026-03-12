@@ -1,6 +1,6 @@
+import { Button } from '@openlocus/ui/components/button'
 import type { Editor } from '@tiptap/react'
 import { BubbleMenu } from '@tiptap/react/menus'
-import { Button } from '@openlocus/ui/components/button'
 
 export function EditorBubbleMenu({ editor }: { editor: Editor }) {
   return (
