@@ -15,7 +15,7 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
-    tsconfigPaths({projects: ['tsconfig.json']}),
+    tsconfigPaths({ projects: ['tsconfig.json'] }),
   ],
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
