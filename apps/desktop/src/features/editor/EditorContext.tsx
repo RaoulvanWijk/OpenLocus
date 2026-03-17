@@ -10,7 +10,7 @@ export type Note = {
 type EditorContextType = {
   availableNotes: Note[]
   loading: boolean
-  loadNotes: () => void
+  loadNotes: () => Promise<void>
   createNote: () => Promise<string>
   deleteNote: (id: string) => Promise<void>
 }
