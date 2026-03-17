@@ -1,5 +1,5 @@
 use chrono::Utc;
-use std::{fs, path::PathBuf};
+use std::{fs, io, io::BufRead, path::PathBuf};
 use uuid::Uuid;
 
 #[derive(serde::Serialize)]
@@ -41,17 +41,46 @@ fn parse_frontmatter_field(frontmatter: &str, key: &str) -> Option<String> {
     None
 }
 
+/// Read only the YAML frontmatter block from the top of the file.
+/// Expects a leading line with `---` and reads until the next `---` line.
+fn read_frontmatter(path: &PathBuf) -> Option<String> {
+    let file = fs::File::open(path).ok()?;
+    let mut reader = io::BufReader::new(file);
+
+    let mut line = String::new();
+
+    // First line must be the opening frontmatter delimiter.
+    reader.read_line(&mut line).ok()?;
+    if line.trim_end() != "---" {
+        return None;
+    }
+
+    let mut frontmatter = String::new();
+    loop {
+        line.clear();
+        let bytes_read = reader.read_line(&mut line).ok()?;
+        if bytes_read == 0 {
+            // EOF reached before closing delimiter.
+            break;
+        }
+
+        if line.trim_end() == "---" {
+            // Closing delimiter reached; stop reading.
+            break;
+        }
+
+        frontmatter.push_str(&line);
+    }
+
+    Some(frontmatter)
+}
+
 fn read_document_meta(path: &PathBuf) -> Option<DocumentMeta> {
-    let content = fs::read_to_string(path).ok()?;
+    let frontmatter = read_frontmatter(path)?;
 
-    // Frontmatter must start at the very beginning with `---`
-    let rest = content.strip_prefix("---\n")?;
-    let end = rest.find("\n---")?;
-    let frontmatter = &rest[..end];
-
-    let id = parse_frontmatter_field(frontmatter, "id")?;
-    let title = parse_frontmatter_field(frontmatter, "title").unwrap_or_default();
-    let created_at = parse_frontmatter_field(frontmatter, "created_at").unwrap_or_default();
+    let id = parse_frontmatter_field(&frontmatter, "id")?;
+    let title = parse_frontmatter_field(&frontmatter, "title").unwrap_or_default();
+    let created_at = parse_frontmatter_field(&frontmatter, "created_at").unwrap_or_default();
 
     Some(DocumentMeta {
         id,
