@@ -9,12 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as EditorRouteRouteImport } from './routes/_editor/route'
+import { Route as NotesRouteRouteImport } from './routes/notes/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EditorEditIdRouteImport } from './routes/_editor/edit.$id'
+import { Route as NotesIndexRouteImport } from './routes/notes/index'
+import { Route as NotesIdRouteImport } from './routes/notes/$id'
 
-const EditorRouteRoute = EditorRouteRouteImport.update({
-  id: '/_editor',
+const NotesRouteRoute = NotesRouteRouteImport.update({
+  id: '/notes',
+  path: '/notes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,46 +24,55 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EditorEditIdRoute = EditorEditIdRouteImport.update({
-  id: '/edit/$id',
-  path: '/edit/$id',
-  getParentRoute: () => EditorRouteRoute,
+const NotesIndexRoute = NotesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => NotesRouteRoute,
+} as any)
+const NotesIdRoute = NotesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => NotesRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/edit/$id': typeof EditorEditIdRoute
+  '/notes': typeof NotesRouteRouteWithChildren
+  '/notes/$id': typeof NotesIdRoute
+  '/notes/': typeof NotesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/edit/$id': typeof EditorEditIdRoute
+  '/notes/$id': typeof NotesIdRoute
+  '/notes': typeof NotesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_editor': typeof EditorRouteRouteWithChildren
-  '/_editor/edit/$id': typeof EditorEditIdRoute
+  '/notes': typeof NotesRouteRouteWithChildren
+  '/notes/$id': typeof NotesIdRoute
+  '/notes/': typeof NotesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/edit/$id'
+  fullPaths: '/' | '/notes' | '/notes/$id' | '/notes/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/edit/$id'
-  id: '__root__' | '/' | '/_editor' | '/_editor/edit/$id'
+  to: '/' | '/notes/$id' | '/notes'
+  id: '__root__' | '/' | '/notes' | '/notes/$id' | '/notes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  EditorRouteRoute: typeof EditorRouteRouteWithChildren
+  NotesRouteRoute: typeof NotesRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_editor': {
-      id: '/_editor'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof EditorRouteRouteImport
+    '/notes': {
+      id: '/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof NotesRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -71,31 +82,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_editor/edit/$id': {
-      id: '/_editor/edit/$id'
-      path: '/edit/$id'
-      fullPath: '/edit/$id'
-      preLoaderRoute: typeof EditorEditIdRouteImport
-      parentRoute: typeof EditorRouteRoute
+    '/notes/': {
+      id: '/notes/'
+      path: '/'
+      fullPath: '/notes/'
+      preLoaderRoute: typeof NotesIndexRouteImport
+      parentRoute: typeof NotesRouteRoute
+    }
+    '/notes/$id': {
+      id: '/notes/$id'
+      path: '/$id'
+      fullPath: '/notes/$id'
+      preLoaderRoute: typeof NotesIdRouteImport
+      parentRoute: typeof NotesRouteRoute
     }
   }
 }
 
-interface EditorRouteRouteChildren {
-  EditorEditIdRoute: typeof EditorEditIdRoute
+interface NotesRouteRouteChildren {
+  NotesIdRoute: typeof NotesIdRoute
+  NotesIndexRoute: typeof NotesIndexRoute
 }
 
-const EditorRouteRouteChildren: EditorRouteRouteChildren = {
-  EditorEditIdRoute: EditorEditIdRoute,
+const NotesRouteRouteChildren: NotesRouteRouteChildren = {
+  NotesIdRoute: NotesIdRoute,
+  NotesIndexRoute: NotesIndexRoute,
 }
 
-const EditorRouteRouteWithChildren = EditorRouteRoute._addFileChildren(
-  EditorRouteRouteChildren,
+const NotesRouteRouteWithChildren = NotesRouteRoute._addFileChildren(
+  NotesRouteRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  EditorRouteRoute: EditorRouteRouteWithChildren,
+  NotesRouteRoute: NotesRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
