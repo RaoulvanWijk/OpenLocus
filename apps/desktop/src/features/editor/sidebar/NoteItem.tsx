@@ -13,7 +13,10 @@ export default function NoteItem({ note }: NoteItemProps) {
   const navigate = useNavigate()
   const { id: currentId } = useParams({ strict: false })
 
-  const handleDeleteNote = async () => {
+  const handleDeleteNote = async (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    event.stopPropagation()
     await deleteNote(note.id)
     navigate({ to: '/notes' })
   }
