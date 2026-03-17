@@ -9,34 +9,12 @@ export const Route = createFileRoute('/')({
 })
 
 function RouteComponent() {
-  const [greetMsg, setGreetMsg] = useState('')
-  const [name, setName] = useState('')
-
-  async function greet() {
-    setGreetMsg(await invoke('greet', { name }))
-  }
-
   return (
     <main>
       <div className="flex justify-between">
         <h1 className="text-2xl font-bold">Open Locus</h1>
         <Link to="/notes">Edit notes</Link>
       </div>
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault()
-          greet()
-        }}
-      >
-        <Input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <Button type="submit">Greet</Button>
-      </form>
-      <p>{greetMsg}</p>
     </main>
   )
 }
