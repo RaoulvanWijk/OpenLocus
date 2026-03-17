@@ -13,5 +13,6 @@
   },
   "search.exclude": {
     "**/routeTree.gen.ts": true
-  }
+  },
+  "rust-analyzer.linkedProjects": ["apps/desktop/src-tauri/Cargo.toml"]
 }
