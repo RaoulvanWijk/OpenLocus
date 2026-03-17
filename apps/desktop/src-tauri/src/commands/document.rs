@@ -1,8 +1,6 @@
 use chrono::Utc;
 use std::{fs, io, io::BufRead, path::PathBuf};
 use uuid::Uuid;
-use serde_yaml;
-
 #[derive(serde::Serialize)]
 pub struct CreateDocumentResult {
     pub id: String,
@@ -15,13 +13,6 @@ pub struct DocumentMeta {
     pub title: String,
     pub created_at: String,
     pub path: String,
-}
-
-#[derive(serde::Serialize)]
-struct Frontmatter<'a> {
-    id: &'a str,
-    title: &'a str,
-    created_at: &'a str,
 }
 
 #[derive(serde::Serialize)]
@@ -205,15 +196,9 @@ pub fn create_document(
         format!("\n# {title}\n")
     };
 
-    let frontmatter = Frontmatter {
-        id: &id,
-        title: &title,
-        created_at: &now,
-    };
+    let frontmatter = format!("id: \"{id}\"\ntitle: \"{title}\"\ncreated_at: \"{now}\"\n");
 
-    let yaml = serde_yaml::to_string(&frontmatter).map_err(|e| e.to_string())?;
-
-    let content = format!("---\n{}---\n{}", yaml, heading);
+    let content = format!("---\n{}---\n{}", frontmatter, heading);
 
     fs::write(&file_path, content).map_err(|e| e.to_string())?;
 
