@@ -86,6 +86,7 @@ pub fn list_documents() -> Result<Vec<DocumentMeta>, String> {
 #[tauri::command]
 pub fn delete_document(id: String) -> Result<(), String> {
     let dir = openlocus_dir()?;
+    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
 
     let path = fs::read_dir(&dir)
         .map_err(|e| e.to_string())?
