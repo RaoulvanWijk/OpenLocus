@@ -4,7 +4,7 @@ import { Trash } from 'lucide-react'
 import React from 'react'
 import { useEditor } from '../hooks/use-editor'
 
-interface NoteItemProps extends React.ComponentProps<'div'> {
+interface NoteItemProps {
   note: { id: string; title: string; time: string }
 }
 
