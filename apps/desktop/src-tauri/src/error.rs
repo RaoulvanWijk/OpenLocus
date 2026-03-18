@@ -4,7 +4,7 @@ use ts_rs::TS;
 
 #[derive(Debug, Clone, Serialize, TS)]
 #[serde(tag = "error_code")] 
-#[ts(export)] 
+#[ts(export, rename = "AppError")]
 pub enum ErrorDto {
     #[serde(rename = "IO")]
     Io { 
