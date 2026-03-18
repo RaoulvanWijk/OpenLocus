@@ -10,8 +10,8 @@ use crate::utils::{
     markdown::{get_document_path, read_document_meta},
 };
 
-#[tauri::command(rename = "document_create")]
-pub fn create(path: String, title: Option<String>) -> AppResult<CreateDocumentResult> {
+#[tauri::command]
+pub fn document_create(path: String, title: Option<String>) -> AppResult<CreateDocumentResult> {
     let id = Uuid::new_v4().to_string();
     let title = title.unwrap_or_default();
     let now = Utc::now().to_rfc3339();
@@ -35,8 +35,8 @@ pub fn create(path: String, title: Option<String>) -> AppResult<CreateDocumentRe
     })
 }
 
-#[tauri::command(rename = "document_get")]
-pub fn get(id: String) -> AppResult<DocumentContent> {
+#[tauri::command]
+pub fn document_get(id: String) -> AppResult<DocumentContent> {
     let path = get_document_path(&id, "document_get")?;
     let raw = fs::read_to_string(&path).map_err(|e| map_io_error("document_get", "read_to_string", e))?;
     let meta = read_document_meta(&path).ok_or_else(|| {
@@ -55,8 +55,8 @@ pub fn get(id: String) -> AppResult<DocumentContent> {
     })
 }
 
-#[tauri::command(rename = "document_list")]
-pub fn list() -> AppResult<Vec<DocumentMeta>> {
+#[tauri::command]
+pub fn document_list() -> AppResult<Vec<DocumentMeta>> {
     let dir = openlocus_dir()?;
     fs::create_dir_all(&dir).map_err(|e| map_io_error("document_list", "create_dir_all", e))?;
 
@@ -77,8 +77,8 @@ pub fn list() -> AppResult<Vec<DocumentMeta>> {
     Ok(docs)
 }
 
-#[tauri::command(rename = "document_delete")]
-pub fn delete(id: String) -> AppResult<()> {
+#[tauri::command]
+pub fn document_delete(id: String) -> AppResult<()> {
     let path = get_document_path(&id, "document_delete")?;
     fs::remove_file(path).map_err(|e| map_io_error("document_delete", "remove_file", e))
 }

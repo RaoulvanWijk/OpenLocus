@@ -18,10 +18,10 @@ pub fn run() {
         })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            commands::document::create,
-            commands::document::get,
-            commands::document::list,
-            commands::document::delete
+            commands::document::document_create,
+            commands::document::document_get,
+            commands::document::document_list,
+            commands::document::document_delete
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
