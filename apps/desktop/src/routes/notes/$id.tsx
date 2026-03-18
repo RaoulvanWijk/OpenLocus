@@ -1,4 +1,5 @@
 import { Editor } from '@/features/editor/Editor'
+import { GlobalErrorView } from '@/features/error/GlobalErrorView'
 import { createFileRoute } from '@tanstack/react-router'
 import { invoke } from '@tauri-apps/api/core'
 
@@ -15,11 +16,7 @@ export const Route = createFileRoute('/notes/$id')({
     return { note }
   },
   component: RouteComponent,
-  errorComponent: () => (
-    <div className="flex h-screen items-center justify-center">
-      <p className="text-red-500">Failed to load note. It may have been deleted.</p>
-    </div>
-  ),
+  errorComponent: ({ error, reset }) => <GlobalErrorView error={error} onRetry={reset} />,
 })
 
 function RouteComponent() {

@@ -1,8 +1,4 @@
-import { Button } from '@openlocus/ui/components/button'
-import { Input } from '@openlocus/ui/components/input'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { invoke } from '@tauri-apps/api/core'
-import { useState } from 'react'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
