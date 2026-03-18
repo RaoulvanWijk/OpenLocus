@@ -1,5 +1,43 @@
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use thiserror::Error;
+use ts_rs::TS;
+
+#[derive(Debug, Clone, Serialize, TS)]
+#[serde(tag = "error_code")] 
+#[ts(export)] 
+pub enum ErrorDto {
+    #[serde(rename = "IO")]
+    Io { 
+        #[ts(type = "\"filesystem\"")] 
+        context: String, 
+        #[serde(skip_serializing_if = "Option::is_none")]
+        technical_details: Option<String> 
+    },
+    
+    #[serde(rename = "DB")]
+    Db { 
+        #[ts(type = "\"database\"")]
+        context: String, 
+        #[serde(skip_serializing_if = "Option::is_none")]
+        technical_details: Option<String> 
+    },
+    
+    #[serde(rename = "AI")]
+    Ai { 
+        #[ts(type = "\"ai\"")]
+        context: String, 
+        #[serde(skip_serializing_if = "Option::is_none")]
+        technical_details: Option<String> 
+    },
+    
+    #[serde(rename = "INTERNAL")]
+    Internal { 
+        #[ts(type = "\"internal\"")]
+        context: String, 
+        #[serde(skip_serializing_if = "Option::is_none")]
+        technical_details: Option<String> 
+    },
+}
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -16,14 +54,42 @@ pub enum AppError {
     Internal(String),
 }
 
+impl AppError {
+    pub fn to_dto(&self) -> ErrorDto {
+        // Securely hide internal logs from production users
+        let details = if cfg!(debug_assertions) {
+            Some(self.to_string())
+        } else {
+            None
+        };
+
+        match self {
+            Self::Io(_) => ErrorDto::Io { 
+                context: "filesystem".to_string(), 
+                technical_details: details.clone() 
+            },
+            Self::Database(_) => ErrorDto::Db { 
+                context: "database".to_string(), 
+                technical_details: details.clone() 
+            },
+            Self::Ai(_) => ErrorDto::Ai { 
+                context: "ai".to_string(), 
+                technical_details: details.clone() 
+            },
+            Self::Internal(_) => ErrorDto::Internal { 
+                context: "internal".to_string(), 
+                technical_details: details.clone() 
+            },
+        }
+    }
+}
+
 impl Serialize for AppError {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
-        S: serde::Serializer,
+        S: Serializer,
     {
-        // Voor nu sturen we de error message als simpele string.
-        // In Task 167028 wordt dit een uitgebreider DTO { code, technical_details, context }
-        serializer.serialize_str(self.to_string().as_ref())
+        self.to_dto().serialize(serializer)
     }
 }
 
@@ -43,14 +109,16 @@ mod tests {
     }
 
     #[test]
-    fn test_database_error_formatting() {
-        let app_err = AppError::Database("connection failed".into());
-        assert_eq!(app_err.to_string(), "Database error: connection failed");
-    }
+    fn test_app_error_serializes_to_error_dto_shape() {
+        let app_err = AppError::Ai("model unavailable".into());
 
-    #[test]
-    fn test_internal_error_formatting() {
-        let app_err = AppError::Internal("unexpected state".into());
-        assert_eq!(app_err.to_string(), "Internal error: unexpected state");
+        // We serialize it to a raw JSON value to prove the frontend gets exactly what we expect
+        let value = serde_json::to_value(&app_err).expect("serialization should succeed");
+
+        assert_eq!(value["error_code"], "AI");
+        assert_eq!(value["context"], "ai");
+        
+        // This test assumes debug_assertions are ON (which they are during `cargo test`)
+        assert_eq!(value["technical_details"], "AI error: model unavailable");
     }
 }
