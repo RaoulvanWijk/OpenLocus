@@ -1,5 +1,6 @@
 use chrono::Utc;
 use std::{fs, io, io::BufRead, path::PathBuf};
+use tracing::{error, debug, warn};
 use uuid::Uuid;
 #[derive(serde::Serialize)]
 pub struct CreateDocumentResult {
@@ -92,10 +93,26 @@ fn read_document_meta(path: &PathBuf) -> Option<DocumentMeta> {
 #[tauri::command]
 pub fn list_documents() -> Result<Vec<DocumentMeta>, String> {
     let dir = openlocus_dir()?;
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    fs::create_dir_all(&dir).map_err(|e| {
+        error!(
+            command = "list_documents",
+            operation = "create_dir_all",
+            error = %e,
+            "Failed to create OpenLocus directory"
+        );
+        e.to_string()
+    })?;
 
     let mut docs: Vec<DocumentMeta> = fs::read_dir(&dir)
-        .map_err(|e| e.to_string())?
+        .map_err(|e| {
+            error!(
+                command = "list_documents",
+                operation = "read_dir",
+                error = %e,
+                "Failed to read OpenLocus directory"
+            );
+            e.to_string()
+        })?
         .filter_map(|entry| {
             let path = entry.ok()?.path();
             if path.extension()?.to_str()? == "md" {
@@ -114,10 +131,26 @@ pub fn list_documents() -> Result<Vec<DocumentMeta>, String> {
 #[tauri::command]
 pub fn delete_document(id: String) -> Result<(), String> {
     let dir = openlocus_dir()?;
-    fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    fs::create_dir_all(&dir).map_err(|e| {
+        error!(
+            command = "delete_document",
+            operation = "create_dir_all",
+            error = %e,
+            "Failed to create OpenLocus directory"
+        );
+        e.to_string()
+    })?;
 
     let path = fs::read_dir(&dir)
-        .map_err(|e| e.to_string())?
+        .map_err(|e| {
+            error!(
+                command = "delete_document",
+                operation = "read_dir",
+                error = %e,
+                "Failed to read OpenLocus directory"
+            );
+            e.to_string()
+        })?
         .filter_map(|entry| {
             let path = entry.ok()?.path();
             if path.extension()?.to_str()? == "md" {
@@ -128,9 +161,23 @@ pub fn delete_document(id: String) -> Result<(), String> {
             }
         })
         .next()
-        .ok_or_else(|| format!("Document with id '{id}' not found"))?;
+        .ok_or_else(|| {
+            warn!(
+                command = "delete_document",
+                "Document not found for deletion"
+            );
+            format!("Document with id '{id}' not found")
+        })?;
 
-    fs::remove_file(path).map_err(|e| e.to_string())
+    fs::remove_file(path).map_err(|e| {
+        error!(
+            command = "delete_document",
+            operation = "remove_file",
+            error = %e,
+            "Failed to delete document file"
+        );
+        e.to_string()
+    })
 }
 
 #[tauri::command]
@@ -138,7 +185,15 @@ pub fn get_note(id: String) -> Result<DocumentContent, String> {
     let dir = openlocus_dir()?;
 
     let path = fs::read_dir(&dir)
-        .map_err(|e| e.to_string())?
+        .map_err(|e| {
+            error!(
+                command = "get_note",
+                operation = "read_dir",
+                error = %e,
+                "Failed to read OpenLocus directory"
+            );
+            e.to_string()
+        })?
         .filter_map(|entry| {
             let path = entry.ok()?.path();
             if path.extension()?.to_str()? == "md" {
@@ -149,11 +204,29 @@ pub fn get_note(id: String) -> Result<DocumentContent, String> {
             }
         })
         .next()
-        .ok_or_else(|| format!("Document with id '{id}' not found"))?;
+        .ok_or_else(|| {
+            warn!(command = "get_note", "Document not found");
+            format!("Document with id '{id}' not found")
+        })?;
 
-    let raw = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let raw = fs::read_to_string(&path).map_err(|e| {
+        error!(
+            command = "get_note",
+            operation = "read_to_string",
+            error = %e,
+            "Failed to read document file"
+        );
+        e.to_string()
+    })?;
     let meta = read_document_meta(&path)
-        .ok_or_else(|| "Failed to parse document metadata".to_string())?;
+        .ok_or_else(|| {
+            error!(
+                command = "get_note",
+                operation = "read_document_meta",
+                "Failed to parse document metadata"
+            );
+            "Failed to parse document metadata".to_string()
+        })?;
 
     // Extract body after the closing `---`
     let body = raw
@@ -187,7 +260,15 @@ pub fn create_document(
     };
 
     if let Some(parent) = file_path.parent() {
-        fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        fs::create_dir_all(parent).map_err(|e| {
+            error!(
+                command = "create_document",
+                operation = "create_dir_all",
+                error = %e,
+                "Failed to create parent directory for document"
+            );
+            e.to_string()
+        })?;
     }
 
     let heading = if title.is_empty() {
@@ -200,7 +281,17 @@ pub fn create_document(
 
     let content = format!("---\n{}---\n{}", frontmatter, heading);
 
-    fs::write(&file_path, content).map_err(|e| e.to_string())?;
+    fs::write(&file_path, content).map_err(|e| {
+        error!(
+            command = "create_document",
+            operation = "write",
+            error = %e,
+            "Failed to write document file"
+        );
+        e.to_string()
+    })?;
+
+    debug!(command = "create_document", "Document created successfully");
 
     Ok(CreateDocumentResult {
         id,
