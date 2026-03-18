@@ -84,16 +84,69 @@ impl AppError {
     }
 }
 
+impl From<&AppError> for ErrorDto {
+    fn from(value: &AppError) -> Self {
+        value.to_dto()
+    }
+}
+
+impl From<AppError> for ErrorDto {
+    fn from(value: AppError) -> Self {
+        (&value).into()
+    }
+}
+
 impl Serialize for AppError {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        self.to_dto().serialize(serializer)
+        ErrorDto::from(self).serialize(serializer)
     }
 }
 
 pub type Result<T> = std::result::Result<T, AppError>;
+
+/// Log an error that has been mapped to the ErrorDto contract.
+/// Extracts error code and context for structured error logging.
+pub fn log_contract_error(command: &str, operation: &str, app_error: &AppError) {
+    let dto = ErrorDto::from(app_error);
+
+    match dto {
+        ErrorDto::Io {
+            context,
+            technical_details,
+        }
+        | ErrorDto::Db {
+            context,
+            technical_details,
+        }
+        | ErrorDto::Ai {
+            context,
+            technical_details,
+        }
+        | ErrorDto::Internal {
+            context,
+            technical_details,
+        } => {
+            tracing::error!(
+                command,
+                operation,
+                context,
+                technical_details = ?technical_details,
+                "Command failed with mapped contract error"
+            );
+        }
+    }
+}
+
+/// Map an I/O error to AppError, log it, and return the error.
+/// This centralizes I/O error handling across all commands.
+pub fn map_io_error(command: &str, operation: &str, io_error: std::io::Error) -> AppError {
+    let app_error = AppError::from(io_error);
+    log_contract_error(command, operation, &app_error);
+    app_error
+}
 
 #[cfg(test)]
 mod tests {
@@ -120,5 +173,21 @@ mod tests {
         
         // This test assumes debug_assertions are ON (which they are during `cargo test`)
         assert_eq!(value["technical_details"], "AI error: model unavailable");
+    }
+
+    #[test]
+    fn test_error_dto_from_app_error() {
+        let dto = ErrorDto::from(AppError::Internal("failure".into()));
+
+        match dto {
+            ErrorDto::Internal {
+                context,
+                technical_details,
+            } => {
+                assert_eq!(context, "internal");
+                assert_eq!(technical_details, Some("Internal error: failure".to_string()));
+            }
+            _ => panic!("expected internal dto variant"),
+        }
     }
 }
