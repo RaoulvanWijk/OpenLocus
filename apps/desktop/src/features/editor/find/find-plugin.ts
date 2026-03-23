@@ -46,8 +46,6 @@ const findActiveHighlight = new Highlight()
 let lastAppliedState: FindState | null = null
 
 function applyHighlights(view: EditorView, pluginState: FindState): void {
-  if (pluginState === lastAppliedState) return
-  lastAppliedState = pluginState
   if (!('highlights' in CSS)) return
 
   const highlights = CSS.highlights as unknown as Map<string, Highlight>
@@ -114,7 +112,8 @@ export function createFindPlugin(): Plugin<FindState> {
       return {
         update(view) {
           const pluginState = findPluginKey.getState(view.state)
-          if (!pluginState) return
+          if (!pluginState || pluginState === lastAppliedState) return
+          lastAppliedState = pluginState
           applyHighlights(view, pluginState)
           if (pluginState.scrollTo) {
             const match = pluginState.matches[pluginState.activeIndex]
