@@ -1,5 +1,5 @@
 import { Extension } from '@tiptap/react'
-import { createFindPlugin, findPluginKey, type FindState } from './find-plugin'
+import { createFindPlugin, findPluginKey } from './find-plugin'
 
 declare module '@tiptap/react' {
   interface Commands<ReturnType> {
@@ -43,9 +43,8 @@ export const FindExtension = Extension.create({
           const pluginState = findPluginKey.getState(state)
           if (!pluginState || pluginState.matches.length === 0) return false
           const activeIndex = (pluginState.activeIndex + 1) % pluginState.matches.length
-          tr.setMeta(findPluginKey, { ...pluginState, activeIndex })
+          tr.setMeta(findPluginKey, { term: pluginState.term, caseSensitive: pluginState.caseSensitive, activeIndex, scrollTo: true })
           dispatch(tr)
-          scrollToMatch(state, activeIndex, pluginState)
           return true
         },
 
@@ -57,9 +56,8 @@ export const FindExtension = Extension.create({
           if (!pluginState || pluginState.matches.length === 0) return false
           const activeIndex =
             (pluginState.activeIndex - 1 + pluginState.matches.length) % pluginState.matches.length
-          tr.setMeta(findPluginKey, { ...pluginState, activeIndex })
+          tr.setMeta(findPluginKey, { term: pluginState.term, caseSensitive: pluginState.caseSensitive, activeIndex, scrollTo: true })
           dispatch(tr)
-          scrollToMatch(state, activeIndex, pluginState)
           return true
         },
 
@@ -74,27 +72,3 @@ export const FindExtension = Extension.create({
     }
   },
 })
-
-// ─── Scroll helper ────────────────────────────────────────────────────────────
-
-function scrollToMatch(
-  state: import('@tiptap/pm/state').EditorState,
-  activeIndex: number,
-  pluginState: FindState,
-) {
-  const match = pluginState.matches[activeIndex]
-  if (!match) return
-
-  requestAnimationFrame(() => {
-    const view = (
-      state as unknown as { view?: { domAtPos?: (pos: number) => { node: Node; offset: number } } }
-    ).view
-    if (!view?.domAtPos) return
-    const { node } = view.domAtPos(match.from)
-    if (node instanceof Element) {
-      node.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-    } else if (node.parentElement) {
-      node.parentElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-    }
-  })
-}

@@ -6,6 +6,7 @@ export interface FindState {
   caseSensitive: boolean
   activeIndex: number
   matches: { from: number; to: number }[]
+  scrollTo: boolean
 }
 
 export const findPluginKey = new PluginKey<FindState>('find')
@@ -81,7 +82,7 @@ export function createFindPlugin(): Plugin<FindState> {
 
     state: {
       init(): FindState {
-        return { term: '', caseSensitive: false, activeIndex: 0, matches: [] }
+        return { term: '', caseSensitive: false, activeIndex: 0, matches: [], scrollTo: false }
       },
 
       apply(tr, prev, _oldState, newState): FindState {
@@ -92,13 +93,13 @@ export function createFindPlugin(): Plugin<FindState> {
           const caseSensitive = meta.caseSensitive ?? prev.caseSensitive
           const matches = buildMatches(newState, term, caseSensitive)
           const activeIndex = Math.min(meta.activeIndex ?? 0, Math.max(0, matches.length - 1))
-          return { term, caseSensitive, activeIndex, matches }
+          return { term, caseSensitive, activeIndex, matches, scrollTo: meta.scrollTo ?? false }
         }
 
         if (tr.docChanged) {
           const matches = buildMatches(newState, prev.term, prev.caseSensitive)
           const activeIndex = Math.min(prev.activeIndex, Math.max(0, matches.length - 1))
-          return { ...prev, activeIndex, matches }
+          return { ...prev, activeIndex, matches, scrollTo: false }
         }
 
         return prev
@@ -109,7 +110,20 @@ export function createFindPlugin(): Plugin<FindState> {
       return {
         update(view) {
           const pluginState = findPluginKey.getState(view.state)
-          if (pluginState) applyHighlights(view, pluginState)
+          if (!pluginState) return
+          applyHighlights(view, pluginState)
+          if (pluginState.scrollTo) {
+            const match = pluginState.matches[pluginState.activeIndex]
+            if (match) {
+              try {
+                const { node } = view.domAtPos(match.from)
+                const el = node instanceof Element ? node : node.parentElement
+                el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+              } catch {
+                // Position out of DOM bounds
+              }
+            }
+          }
         },
         destroy() {
           if (!('highlights' in CSS)) return
