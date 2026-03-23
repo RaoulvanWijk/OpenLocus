@@ -2680,11 +2680,14 @@ dependencies = [
 name = "openlocus"
 version = "0.1.0"
 dependencies = [
+ "bytes",
  "chrono",
  "dirs-next",
  "encoding_rs",
+ "futures-util",
  "hf-hub",
  "llama-cpp-2",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "tauri",
