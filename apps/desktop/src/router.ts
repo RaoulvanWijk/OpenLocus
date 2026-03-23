@@ -7,4 +7,4 @@ declare module '@tanstack/react-router' {
   }
 }
 
-export const router = createRouter({ routeTree })
+export const router = createRouter({ routeTree, defaultGcTime: 0 })

@@ -32,13 +32,13 @@ export default function EditorContextProvider({
   const loadNotes = useCallback(async () => {
     setLoading(true)
     const docs =
-      await invoke<{ id: string; title: string; created_at: string; path: string }[]>(
+      await invoke<{ id: string; title: string; created_at: string; updated_at: string; path: string }[]>(
         'document_list',
       )
     const loaded: Note[] = docs.map((doc) => ({
       id: doc.id,
       title: doc.title,
-      time: new Date(doc.created_at).toLocaleString(),
+      time: new Date(doc.updated_at || doc.created_at).toLocaleString(),
     }))
     setAvailableNotes(loaded)
     setLoading(false)
