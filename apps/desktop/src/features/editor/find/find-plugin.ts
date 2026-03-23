@@ -11,8 +11,6 @@ export interface FindState {
 
 export const findPluginKey = new PluginKey<FindState>('find')
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -30,6 +28,7 @@ function buildMatches(
 
   state.doc.descendants((node, pos) => {
     if (!node.isText || !node.text) return
+    regex.lastIndex = 0
     let match: RegExpExecArray | null
     while ((match = regex.exec(node.text)) !== null) {
       matches.push({ from: pos + match.index, to: pos + match.index + match[0].length })
@@ -39,17 +38,23 @@ function buildMatches(
   return matches
 }
 
+// Persistent Highlight objects are mutated in place — replacing them in the
+// registry doesn't reliably trigger a repaint in all WebView implementations.
+const findHighlight = new Highlight()
+const findActiveHighlight = new Highlight()
+
 function applyHighlights(view: EditorView, pluginState: FindState): void {
   if (!('highlights' in CSS)) return
 
   const highlights = CSS.highlights as unknown as Map<string, Highlight>
-  highlights.delete('find')
-  highlights.delete('find-active')
+
+  if (!highlights.has('find')) highlights.set('find', findHighlight)
+  if (!highlights.has('find-active')) highlights.set('find-active', findActiveHighlight)
+
+  findHighlight.clear()
+  findActiveHighlight.clear()
 
   if (!pluginState.term || pluginState.matches.length === 0) return
-
-  const allRanges: Range[] = []
-  const activeRanges: Range[] = []
 
   for (let i = 0; i < pluginState.matches.length; i++) {
     const match = pluginState.matches[i]
@@ -61,20 +66,15 @@ function applyHighlights(view: EditorView, pluginState: FindState): void {
       range.setStart(from.node, from.offset)
       range.setEnd(to.node, to.offset)
       if (i === pluginState.activeIndex) {
-        activeRanges.push(range)
+        findActiveHighlight.add(range)
       } else {
-        allRanges.push(range)
+        findHighlight.add(range)
       }
     } catch {
-      // Position out of DOM bounds — skip
+      // position out of DOM bounds — skip
     }
   }
-
-  if (allRanges.length > 0) highlights.set('find', new Highlight(...allRanges))
-  if (activeRanges.length > 0) highlights.set('find-active', new Highlight(...activeRanges))
 }
-
-// ─── Plugin ──────────────────────────────────────────────────────────────────
 
 export function createFindPlugin(): Plugin<FindState> {
   return new Plugin<FindState>({
@@ -120,13 +120,15 @@ export function createFindPlugin(): Plugin<FindState> {
                 const el = node instanceof Element ? node : node.parentElement
                 el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
               } catch {
-                // Position out of DOM bounds
+                // position out of DOM bounds
               }
             }
           }
         },
         destroy() {
           if (!('highlights' in CSS)) return
+          findHighlight.clear()
+          findActiveHighlight.clear()
           const highlights = CSS.highlights as unknown as Map<string, Highlight>
           highlights.delete('find')
           highlights.delete('find-active')

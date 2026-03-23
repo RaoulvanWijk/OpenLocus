@@ -4,13 +4,9 @@ import { createFindPlugin, findPluginKey } from './find-plugin'
 declare module '@tiptap/react' {
   interface Commands<ReturnType> {
     find: {
-      /** Set the search term and options. Pass an empty string to clear. */
       setSearchTerm: (term: string, options?: { caseSensitive?: boolean }) => ReturnType
-      /** Navigate to the next match. Wraps around. */
       nextMatch: () => ReturnType
-      /** Navigate to the previous match. Wraps around. */
       prevMatch: () => ReturnType
-      /** Clear find state entirely. */
       clearSearch: () => ReturnType
     }
   }
