@@ -33,7 +33,7 @@ export default function EditorContextProvider({
     setLoading(true)
     const docs =
       await invoke<{ id: string; title: string; created_at: string; path: string }[]>(
-        'list_documents',
+        'document_list',
       )
     const loaded: Note[] = docs.map((doc) => ({
       id: doc.id,
@@ -50,7 +50,7 @@ export default function EditorContextProvider({
       return existingEmpty.id
     }
 
-    const result = await invoke<{ id: string; path: string }>('create_document', {
+    const result = await invoke<{ id: string; path: string }>('document_create', {
       path: `Untitled-${Date.now()}.md`,
     })
     const newNote: Note = {
@@ -63,7 +63,7 @@ export default function EditorContextProvider({
   }, [availableNotes])
 
   const deleteNote = useCallback(async (id: string) => {
-    await invoke('delete_document', { id })
+    await invoke('document_delete', { id })
     setAvailableNotes((prev) => prev.filter((n) => n.id !== id))
   }, [])
 

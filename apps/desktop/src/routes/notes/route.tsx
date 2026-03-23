@@ -8,7 +8,7 @@ export const Route = createFileRoute('/notes')({
   loader: async () => {
     const docs =
       await invoke<{ id: string; title: string; created_at: string; path: string }[]>(
-        'list_documents',
+        'document_list',
       )
     const notes: Note[] = docs.map((doc) => ({
       id: doc.id,

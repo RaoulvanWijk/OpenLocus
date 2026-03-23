@@ -25,4 +25,9 @@ serde_json = "1"
 uuid = { version = "1", features = ["v4"] }
 chrono = "0.4"
 dirs-next = "2"
+thiserror = "2.0.18"
+tracing = "0.1"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+ts-rs = "12.0"
 
