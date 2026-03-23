@@ -77,7 +77,7 @@ export function FindBar({ editor, onClose }: FindBarProps) {
     <div
       role="search"
       aria-label="Find in document"
-      className="border-border bg-popover fixed top-2 right-4 z-50 flex items-center gap-1 rounded-lg border px-2 py-1.5 shadow-md"
+      className="fixed top-2 right-4 z-50 flex h-9.5 items-center gap-1 rounded-lg border border-gray-200 bg-white px-4 shadow-sm"
     >
       <input
         ref={inputRef}
