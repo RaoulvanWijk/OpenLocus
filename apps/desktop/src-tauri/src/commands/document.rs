@@ -51,6 +51,7 @@ pub fn document_get(id: String) -> AppResult<DocumentContent> {
         id: meta.id,
         title: meta.title,
         created_at: meta.created_at,
+        updated_at: meta.updated_at,
         content: body,
     })
 }
@@ -72,9 +73,31 @@ pub fn document_list() -> AppResult<Vec<DocumentMeta>> {
         })
         .collect();
 
-    docs.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+    docs.sort_by(|a, b| {
+        let a_time = if a.updated_at.is_empty() { &a.created_at } else { &a.updated_at };
+        let b_time = if b.updated_at.is_empty() { &b.created_at } else { &b.updated_at };
+        b_time.cmp(a_time)
+    });
 
     Ok(docs)
+}
+
+#[tauri::command]
+pub fn document_update(id: String, content: String, title: String) -> AppResult<()> {
+    let path = get_document_path(&id, "document_update")?;
+    let meta = read_document_meta(&path).ok_or_else(|| {
+        let app_error = AppError::Internal("Failed to parse document metadata".to_string());
+        log_contract_error("document_update", "read_document_meta", &app_error);
+        app_error
+    })?;
+    let now = Utc::now().to_rfc3339();
+    let new_content = format!(
+        "---\nid: \"{}\"\ntitle: \"{}\"\ncreated_at: \"{}\"\nupdated_at: \"{}\"\n---\n{}",
+        meta.id, title, meta.created_at, now, content
+    );
+    fs::write(&path, new_content).map_err(|e| map_io_error("document_update", "write", e))?;
+    debug!(command = "document_update", id = %id, "Document updated");
+    Ok(())
 }
 
 #[tauri::command]

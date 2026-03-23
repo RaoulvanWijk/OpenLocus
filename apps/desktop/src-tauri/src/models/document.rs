@@ -9,6 +9,7 @@ pub struct DocumentMeta {
     pub id: String,
     pub title: String,
     pub created_at: String,
+    pub updated_at: String,
     pub path: String,
 }
 
@@ -17,5 +18,6 @@ pub struct DocumentContent {
     pub id: String,
     pub title: String,
     pub created_at: String,
+    pub updated_at: String,
     pub content: String,
 }

@@ -21,7 +21,8 @@ pub fn run() {
             commands::document::document_create,
             commands::document::document_get,
             commands::document::document_list,
-            commands::document::document_delete
+            commands::document::document_delete,
+            commands::document::document_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
