@@ -7,35 +7,31 @@ use ts_rs::TS;
 #[ts(export, rename = "AppError")]
 pub enum ErrorDto {
     #[serde(rename = "IO")]
-    Io { 
-        #[ts(type = "\"filesystem\"")] 
-        context: String, 
-        #[serde(skip_serializing_if = "Option::is_none")]
-        technical_details: Option<String> 
+    Io {
+        #[ts(type = "\"filesystem\"")]
+        context: String,
+        technical_details: Option<String>
     },
-    
+
     #[serde(rename = "DB")]
-    Db { 
+    Db {
         #[ts(type = "\"database\"")]
-        context: String, 
-        #[serde(skip_serializing_if = "Option::is_none")]
-        technical_details: Option<String> 
+        context: String,
+        technical_details: Option<String>
     },
-    
+
     #[serde(rename = "AI")]
-    Ai { 
+    Ai {
         #[ts(type = "\"ai\"")]
-        context: String, 
-        #[serde(skip_serializing_if = "Option::is_none")]
-        technical_details: Option<String> 
+        context: String,
+        technical_details: Option<String>
     },
-    
+
     #[serde(rename = "INTERNAL")]
-    Internal { 
+    Internal {
         #[ts(type = "\"internal\"")]
-        context: String, 
-        #[serde(skip_serializing_if = "Option::is_none")]
-        technical_details: Option<String> 
+        context: String,
+        technical_details: Option<String>
     },
 }
 
