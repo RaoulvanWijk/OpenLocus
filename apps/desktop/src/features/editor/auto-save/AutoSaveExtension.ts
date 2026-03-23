@@ -23,6 +23,11 @@ function extractTitle(doc: Node): string {
 
 const autoSavePluginKey = new PluginKey('autoSave')
 
+type PendingSave = {
+  content: string
+  title: string
+}
+
 export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
   name: 'autoSave',
 
@@ -42,20 +47,34 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
 
     let debounceTimer: ReturnType<typeof setTimeout> | undefined
     let maxWaitTimer: ReturnType<typeof setTimeout> | undefined
-    let pendingDoc: Node | undefined
+    let pendingSave: PendingSave | undefined
+    let isSaving = false
 
-    const save = async (doc: Node) => {
+    const flushPending = async () => {
       clearTimeout(debounceTimer)
       clearTimeout(maxWaitTimer)
       debounceTimer = undefined
       maxWaitTimer = undefined
-      pendingDoc = undefined
-      try {
-        await options.onSave(editor.getHTML(), extractTitle(doc))
-        options.onStatusChange('saved')
-      } catch {
-        options.onStatusChange('error')
+
+      if (isSaving || !pendingSave) {
+        return
       }
+
+      isSaving = true
+
+      while (pendingSave) {
+        const currentSave = pendingSave
+        pendingSave = undefined
+
+        try {
+          await options.onSave(currentSave.content, currentSave.title)
+          options.onStatusChange('saved')
+        } catch {
+          options.onStatusChange('error')
+        }
+      }
+
+      isSaving = false
     }
 
     return [
@@ -66,23 +85,32 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
             update(view, prevState) {
               if (view.state.doc.eq(prevState.doc)) return
 
-              options.onStatusChange('saving')
-              options.onLocalUpdate(extractTitle(view.state.doc), new Date().toISOString())
+              const title = extractTitle(view.state.doc)
 
-              pendingDoc = view.state.doc
+              options.onStatusChange('saving')
+              options.onLocalUpdate(title, new Date().toISOString())
+
+              pendingSave = {
+                content: editor.getHTML(),
+                title,
+              }
 
               clearTimeout(debounceTimer)
-              debounceTimer = setTimeout(() => save(pendingDoc!), options.debounceMs)
+              debounceTimer = setTimeout(() => {
+                void flushPending()
+              }, options.debounceMs)
 
               if (!maxWaitTimer) {
-                maxWaitTimer = setTimeout(() => save(pendingDoc!), options.maxWaitMs)
+                maxWaitTimer = setTimeout(() => {
+                  void flushPending()
+                }, options.maxWaitMs)
               }
             },
             destroy() {
               clearTimeout(debounceTimer)
               clearTimeout(maxWaitTimer)
-              if (pendingDoc) {
-                save(pendingDoc)
+              if (pendingSave && !isSaving) {
+                void flushPending()
               }
             },
           }

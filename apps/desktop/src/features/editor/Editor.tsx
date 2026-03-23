@@ -30,6 +30,7 @@ export function Editor({ noteId, initialContent }: EditorProps) {
     editorProps: {
       attributes: {
         class: 'prose prose-sm sm:prose-base focus:outline-none min-h-full p-4',
+        spellcheck: 'true',
       },
     },
   })
