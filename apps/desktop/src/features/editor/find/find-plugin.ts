@@ -43,7 +43,11 @@ function buildMatches(
 const findHighlight = new Highlight()
 const findActiveHighlight = new Highlight()
 
+let lastAppliedState: FindState | null = null
+
 function applyHighlights(view: EditorView, pluginState: FindState): void {
+  if (pluginState === lastAppliedState) return
+  lastAppliedState = pluginState
   if (!('highlights' in CSS)) return
 
   const highlights = CSS.highlights as unknown as Map<string, Highlight>

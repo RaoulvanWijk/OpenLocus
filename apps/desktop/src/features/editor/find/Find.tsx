@@ -3,15 +3,13 @@ import { useEffect, useState } from 'react'
 import { FindBar } from './FindBar'
 
 interface FindProps {
-  editor: Editor | null
+  editor: Editor
 }
 
 export function Find({ editor }: FindProps) {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    if (!editor) return
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault()
@@ -26,7 +24,7 @@ export function Find({ editor }: FindProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [editor, open])
 
-  if (!open || !editor) return null
+  if (!open) return null
 
   return (
     <FindBar
