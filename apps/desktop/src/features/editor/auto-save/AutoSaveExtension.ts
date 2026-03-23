@@ -10,6 +10,7 @@ export interface AutoSaveOptions {
   maxWaitMs: number
   onSave: (content: string, title: string) => Promise<void>
   onStatusChange: (status: SaveStatus) => void
+  onLocalUpdate: (title: string, updatedAt: string) => void
 }
 
 function extractTitle(doc: Node): string {
@@ -32,6 +33,7 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
       maxWaitMs: 5000,
       onSave: async () => {},
       onStatusChange: () => {},
+      onLocalUpdate: () => {},
     }
   },
 
@@ -40,12 +42,14 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
 
     let debounceTimer: ReturnType<typeof setTimeout> | undefined
     let maxWaitTimer: ReturnType<typeof setTimeout> | undefined
+    let pendingDoc: Node | undefined
 
     const save = async (doc: Node) => {
       clearTimeout(debounceTimer)
       clearTimeout(maxWaitTimer)
       debounceTimer = undefined
       maxWaitTimer = undefined
+      pendingDoc = undefined
       try {
         await options.onSave(editor.getHTML(), extractTitle(doc))
         options.onStatusChange('saved')
@@ -63,19 +67,23 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
               if (view.state.doc.eq(prevState.doc)) return
 
               options.onStatusChange('saving')
+              options.onLocalUpdate(extractTitle(view.state.doc), new Date().toISOString())
 
-              const { doc } = view.state
+              pendingDoc = view.state.doc
 
               clearTimeout(debounceTimer)
-              debounceTimer = setTimeout(() => save(doc), options.debounceMs)
+              debounceTimer = setTimeout(() => save(pendingDoc!), options.debounceMs)
 
               if (!maxWaitTimer) {
-                maxWaitTimer = setTimeout(() => save(doc), options.maxWaitMs)
+                maxWaitTimer = setTimeout(() => save(pendingDoc!), options.maxWaitMs)
               }
             },
             destroy() {
               clearTimeout(debounceTimer)
               clearTimeout(maxWaitTimer)
+              if (pendingDoc) {
+                save(pendingDoc)
+              }
             },
           }
         },

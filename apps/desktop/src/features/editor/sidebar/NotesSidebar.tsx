@@ -1,10 +1,10 @@
-import { useEditor } from '@/features/editor/hooks/use-editor'
+import { useEditorContext } from '@/features/editor/hooks/use-editor-context'
 import { useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import NoteItem from './NoteItem'
 
 export function NotesSidebar() {
-  const { availableNotes, createNote } = useEditor()
+  const { availableNotes, createNote } = useEditorContext()
   const navigate = useNavigate()
 
   const handleCreateNote = async () => {

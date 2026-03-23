@@ -2,14 +2,15 @@ import { cn } from '@openlocus/ui/lib/utils'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Trash } from 'lucide-react'
 import React from 'react'
-import { useEditor } from '../hooks/use-editor'
+import { useEditorContext } from '../hooks/use-editor-context'
+import { formatNoteDate } from '../utils/format-date'
 
 interface NoteItemProps {
-  note: { id: string; title: string; time: string }
+  note: { id: string; title: string; updatedAt: string }
 }
 
 export default function NoteItem({ note }: NoteItemProps) {
-  const { deleteNote } = useEditor()
+  const { deleteNote } = useEditorContext()
   const navigate = useNavigate()
   const { id: currentId } = useParams({ strict: false })
 
@@ -41,7 +42,7 @@ export default function NoteItem({ note }: NoteItemProps) {
           >
             {note.title || 'Untitled'}
           </p>
-          <p className="mt-1 text-xs text-gray-400">{note.time}</p>
+          <p className="mt-1 text-xs text-gray-400">{formatNoteDate(note.updatedAt)}</p>
         </div>
         <button
           onClick={handleDeleteNote}

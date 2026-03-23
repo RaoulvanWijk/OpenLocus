@@ -1,18 +1,20 @@
 import { invoke } from '@tauri-apps/api/core'
 import { createContext, ReactNode, useCallback, useMemo, useState } from 'react'
+import type { SaveStatus } from './auto-save/AutoSaveExtension'
 
 export type Note = {
   id: string
   title: string
-  time: string
+  updatedAt: string
 }
 
 type EditorContextType = {
   availableNotes: Note[]
-  loading: boolean
-  loadNotes: () => Promise<void>
+  saveStatus: SaveStatus
+  setSaveStatus: (status: SaveStatus) => void
   createNote: () => Promise<string>
   deleteNote: (id: string) => Promise<void>
+  updateNote: (id: string, title: string, updatedAt: string) => void
 }
 
 export const EditorContext = createContext<EditorContextType | null>(null)
@@ -27,22 +29,7 @@ export default function EditorContextProvider({
   children,
 }: EditorContextProviderProps) {
   const [availableNotes, setAvailableNotes] = useState<Note[]>(initialNotes)
-  const [loading, setLoading] = useState(false)
-
-  const loadNotes = useCallback(async () => {
-    setLoading(true)
-    const docs =
-      await invoke<{ id: string; title: string; created_at: string; updated_at: string; path: string }[]>(
-        'document_list',
-      )
-    const loaded: Note[] = docs.map((doc) => ({
-      id: doc.id,
-      title: doc.title,
-      time: new Date(doc.updated_at || doc.created_at).toLocaleString(),
-    }))
-    setAvailableNotes(loaded)
-    setLoading(false)
-  }, [])
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
 
   const createNote = useCallback(async () => {
     const existingEmpty = availableNotes.find((n) => n.title === '')
@@ -56,7 +43,7 @@ export default function EditorContextProvider({
     const newNote: Note = {
       id: result.id,
       title: '',
-      time: new Date().toLocaleString(),
+      updatedAt: new Date().toISOString(),
     }
     setAvailableNotes((prev) => [newNote, ...prev])
     return result.id
@@ -67,9 +54,16 @@ export default function EditorContextProvider({
     setAvailableNotes((prev) => prev.filter((n) => n.id !== id))
   }, [])
 
+  const updateNote = useCallback((id: string, title: string, updatedAt: string) => {
+    setAvailableNotes((prev) => {
+      const updated = prev.map((n) => (n.id === id ? { ...n, title, updatedAt } : n))
+      return [...updated].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    })
+  }, [])
+
   const value = useMemo(
-    () => ({ availableNotes, loading, loadNotes, createNote, deleteNote }),
-    [availableNotes, loading, loadNotes, createNote, deleteNote],
+    () => ({ availableNotes, saveStatus, setSaveStatus, createNote, deleteNote, updateNote }),
+    [availableNotes, saveStatus, setSaveStatus, createNote, deleteNote, updateNote],
   )
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>
