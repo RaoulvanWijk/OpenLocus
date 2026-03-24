@@ -11,14 +11,14 @@ import {
 } from '@openlocus/ui/components/alert-dialog'
 import { Trash } from 'lucide-react'
 
-export interface DeleteNoteModalProps {
+export interface DeleteNoteDialogProps {
   open: boolean
   onCancel: () => void
   onConfirm: () => void
   title: string
 }
 
-export function DeleteNoteModal({ open, onCancel, onConfirm, title }: DeleteNoteModalProps) {
+export function DeleteNoteDialog({ open, onCancel, onConfirm, title }: DeleteNoteDialogProps) {
   return (
     <AlertDialog
       open={open}
