@@ -3,10 +3,11 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useEffect } from 'react'
 import { Find } from './find/Find'
+import { FindExtension } from './find/FindExtension'
 
 export function Editor({ note }: { note: NoteData }) {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, FindExtension],
     content: note.content,
     autofocus: true,
     editorProps: {
