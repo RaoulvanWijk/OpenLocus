@@ -1,5 +1,7 @@
 export function formatNoteDate(isoString: string): string {
   const date = new Date(isoString)
+  if (isNaN(date.getTime())) return 'Invalid date'
+
   const now = new Date()
 
   const diffMs = now.getTime() - date.getTime()
