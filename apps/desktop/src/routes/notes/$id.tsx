@@ -13,6 +13,7 @@ export type NoteData = {
 
 export const Route = createFileRoute('/notes/$id')({
   loader: async ({ params }) => {
+    console.log('Loading note with id:', params.id)
     const note = await invoke<NoteData>('document_get', { id: params.id })
     return { note }
   },

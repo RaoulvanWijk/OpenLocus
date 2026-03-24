@@ -1,11 +1,9 @@
 import type { Node } from '@tiptap/pm/model'
-import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Extension } from '@tiptap/react'
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 export interface AutoSaveOptions {
-  noteId: string
   debounceMs: number
   maxWaitMs: number
   onSave: (content: string, title: string) => Promise<void>
@@ -13,15 +11,13 @@ export interface AutoSaveOptions {
   onLocalUpdate: (title: string, updatedAt: string) => void
 }
 
-function extractTitle(doc: Node): string {
+export function extractTitle(doc: Node): string {
   const firstNode = doc.firstChild
   if (firstNode && firstNode.type.name === 'heading' && firstNode.attrs.level === 1) {
     return firstNode.textContent
   }
   return ''
 }
-
-const autoSavePluginKey = new PluginKey('autoSave')
 
 type PendingSave = {
   content: string
@@ -33,7 +29,6 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
 
   addOptions() {
     return {
-      noteId: '',
       debounceMs: 800,
       maxWaitMs: 5000,
       onSave: async () => {},
@@ -42,8 +37,41 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
     }
   },
 
-  addProseMirrorPlugins() {
+  onUpdate() {
     const { options, editor } = this
+
+    const title = extractTitle(editor.state.doc)
+
+    options.onStatusChange('saving')
+    options.onLocalUpdate(title, new Date().toISOString())
+
+    this.storage.pendingSave = {
+      content: editor.getHTML(),
+      title,
+    }
+
+    clearTimeout(this.storage.debounceTimer)
+    this.storage.debounceTimer = setTimeout(() => {
+      void this.storage.flushPending()
+    }, options.debounceMs)
+
+    if (!this.storage.maxWaitTimer) {
+      this.storage.maxWaitTimer = setTimeout(() => {
+        void this.storage.flushPending()
+      }, options.maxWaitMs)
+    }
+  },
+
+  onDestroy() {
+    clearTimeout(this.storage.debounceTimer)
+    clearTimeout(this.storage.maxWaitTimer)
+    if (this.storage.pendingSave && !this.storage.isSaving) {
+      void this.storage.flushPending()
+    }
+  },
+
+  addStorage() {
+    const options = this.options
 
     let debounceTimer: ReturnType<typeof setTimeout> | undefined
     let maxWaitTimer: ReturnType<typeof setTimeout> | undefined
@@ -77,45 +105,15 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
       isSaving = false
     }
 
-    return [
-      new Plugin({
-        key: autoSavePluginKey,
-        view() {
-          return {
-            update(view, prevState) {
-              if (view.state.doc.eq(prevState.doc)) return
-
-              const title = extractTitle(view.state.doc)
-
-              options.onStatusChange('saving')
-              options.onLocalUpdate(title, new Date().toISOString())
-
-              pendingSave = {
-                content: editor.getHTML(),
-                title,
-              }
-
-              clearTimeout(debounceTimer)
-              debounceTimer = setTimeout(() => {
-                void flushPending()
-              }, options.debounceMs)
-
-              if (!maxWaitTimer) {
-                maxWaitTimer = setTimeout(() => {
-                  void flushPending()
-                }, options.maxWaitMs)
-              }
-            },
-            destroy() {
-              clearTimeout(debounceTimer)
-              clearTimeout(maxWaitTimer)
-              if (pendingSave && !isSaving) {
-                void flushPending()
-              }
-            },
-          }
-        },
-      }),
-    ]
+    return {
+      get debounceTimer() { return debounceTimer },
+      set debounceTimer(v) { debounceTimer = v },
+      get maxWaitTimer() { return maxWaitTimer },
+      set maxWaitTimer(v) { maxWaitTimer = v },
+      get pendingSave() { return pendingSave },
+      set pendingSave(v) { pendingSave = v },
+      get isSaving() { return isSaving },
+      flushPending,
+    }
   },
 })

@@ -14,9 +14,7 @@ export default function NoteItem({ note }: NoteItemProps) {
   const navigate = useNavigate()
   const { id: currentId } = useParams({ strict: false })
 
-  const handleDeleteNote = async (
-    event: React.MouseEvent<HTMLButtonElement>,
-  ) => {
+  const handleDeleteNote = async (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation()
     await deleteNote(note.id)
     navigate({ to: '/notes' })
@@ -37,7 +35,7 @@ export default function NoteItem({ note }: NoteItemProps) {
         <div className="min-w-0 flex-1">
           <p
             className={cn('truncate text-sm font-semibold', {
-              'text-gray-400 italic': note.title === '',
+              'text-gray-400': note.title === '',
             })}
           >
             {note.title || 'Untitled'}

@@ -2,22 +2,22 @@ import { NoteData } from '@/routes/notes/$id'
 import { invoke } from '@tauri-apps/api/core'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { AutoSaveExtension } from './auto-save/AutoSaveExtension'
 import { useEditorContext } from './hooks/use-editor-context'
 import { SaveStatus } from './SaveStatus'
 
 export function Editor({ note }: { note: NoteData }) {
   const { updateNote, setSaveStatus } = useEditorContext()
+  const noteIdRef = useRef(note.id)
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       AutoSaveExtension.configure({
-        noteId: note.id,
-        onLocalUpdate: (title: string, updatedAt: string) => updateNote(note.id, title, updatedAt),
+        onLocalUpdate: (title: string, updatedAt: string) => updateNote(noteIdRef.current, title, updatedAt),
         onSave: async (content: string, title: string) => {
-          await invoke('document_update', { id: note.id, content, title })
+          await invoke('document_update', { id: noteIdRef.current, content, title })
         },
         onStatusChange: setSaveStatus,
       }),
@@ -33,6 +33,7 @@ export function Editor({ note }: { note: NoteData }) {
   })
 
   useEffect(() => {
+    noteIdRef.current = note.id
     if (editor && editor.getHTML() !== note.content) {
       editor.commands.setContent(note.content, { emitUpdate: false })
     }
