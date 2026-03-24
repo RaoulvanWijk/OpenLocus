@@ -9,6 +9,7 @@ export function Editor() {
     autofocus: true,
     editorProps: {
       attributes: {
+        spellcheck: 'true',
         class: 'prose prose-sm sm:prose-base focus:outline-none min-h-full p-4',
       },
     },
