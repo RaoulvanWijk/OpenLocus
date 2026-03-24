@@ -38,6 +38,7 @@ export function Editor({ note }: { note: NoteData }) {
     noteIdRef.current = note.id
     if (editor && editor.getHTML() !== note.content) {
       editor.commands.setContent(note.content || '<h1>', { emitUpdate: false })
+      editor.commands.focus()
     }
   }, [note.id])
 
