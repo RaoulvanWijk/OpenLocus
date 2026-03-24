@@ -2,10 +2,12 @@ import { NoteData } from '@/routes/notes/$id'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useEffect } from 'react'
+import { Find } from './find/Find'
+import { FindExtension } from './find/FindExtension'
 
 export function Editor({ note }: { note: NoteData }) {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, FindExtension],
     content: note.content,
     autofocus: true,
     editorProps: {
@@ -23,13 +25,8 @@ export function Editor({ note }: { note: NoteData }) {
   }, [note.id])
 
   return (
-    <div className="flex flex-1 flex-col">
-      {editor && (
-        <>
-          {/* <EditorToolbar editor={editor} />
-          <EditorBubbleMenu editor={editor} /> */}
-        </>
-      )}
+    <div className="relative flex flex-1 flex-col">
+      <Find editor={editor} />
       <EditorContent editor={editor} className="flex-1 overflow-y-auto" />
     </div>
   )
