@@ -2,7 +2,6 @@
 
 import { GripVerticalIcon } from "lucide-react"
 import * as ResizablePrimitive from "react-resizable-panels"
-
 import { cn } from "@openlocus/ui/lib/utils"
 
 function ResizablePanelGroup({
@@ -49,5 +48,7 @@ function ResizableHandle({
     </ResizablePrimitive.Separator>
   )
 }
-
+type PanelImperativeHandle = ResizablePrimitive.PanelImperativeHandle
 export { ResizableHandle, ResizablePanel, ResizablePanelGroup }
+export type { PanelImperativeHandle }
+
