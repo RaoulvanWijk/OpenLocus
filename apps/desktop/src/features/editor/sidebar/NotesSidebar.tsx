@@ -13,7 +13,7 @@ export function NotesSidebar() {
   }
 
   return (
-    <aside className="relative flex h-screen w-64 flex-col gap-3 border-r bg-gray-50 p-3">
+    <aside className="relative flex h-screen w-64 shrink-0 flex-col gap-3 border-r bg-gray-50 p-3">
       <button
         onClick={handleCreateNote}
         className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 shadow-sm"

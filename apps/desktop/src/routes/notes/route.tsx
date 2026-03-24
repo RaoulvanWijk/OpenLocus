@@ -7,9 +7,9 @@ import { NotesSidebar } from '../../features/editor/sidebar/NotesSidebar'
 export const Route = createFileRoute('/notes')({
   loader: async () => {
     const docs =
-      await invoke<{ id: string; title: string; created_at: string; updated_at: string; path: string }[]>(
-        'document_list',
-      )
+      await invoke<
+        { id: string; title: string; created_at: string; updated_at: string; path: string }[]
+      >('document_list')
     const notes: Note[] = docs.map((doc) => ({
       id: doc.id,
       title: doc.title,
@@ -24,11 +24,11 @@ function RouteComponent() {
   const { notes } = Route.useLoaderData()
 
   return (
-    <div className="flex">
-      <EditorContextProvider initialNotes={notes}>
+    <EditorContextProvider initialNotes={notes}>
+      <div className="flex">
         <NotesSidebar />
         <Outlet />
-      </EditorContextProvider>
-    </div>
+      </div>
+    </EditorContextProvider>
   )
 }

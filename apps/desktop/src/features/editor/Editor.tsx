@@ -28,7 +28,8 @@ export function Editor({ note }: { note: NoteData }) {
     editorProps: {
       attributes: {
         spellcheck: 'true',
-        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-full p-4',
+        class:
+          'prose prose-sm sm:prose-base focus:outline-none max-w-full wrap-anywhere min-h-full w-full p-4',
       },
     },
   })
@@ -41,9 +42,9 @@ export function Editor({ note }: { note: NoteData }) {
   }, [note.id])
 
   return (
-    <div className="flex flex-1 flex-col">
+    <>
       <SaveStatus />
-      <EditorContent editor={editor} className="flex-1 overflow-y-auto" />
-    </div>
+      <EditorContent className="relative min-w-0 flex-1 overflow-hidden" editor={editor} />
+    </>
   )
 }
