@@ -17,7 +17,7 @@ import { useNavigate, useParams } from '@tanstack/react-router'
 import { MoreHorizontal, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { useEditor } from '../hooks/use-editor'
-import { DeleteNoteModal } from './DeleteNoteModal'
+import { DeleteNoteDialog } from './DeleteNoteDialog'
 
 function NoteItem({ note }: { note: { id: string; title: string; time: string } }) {
   const { deleteNote } = useEditor()
@@ -38,37 +38,6 @@ function NoteItem({ note }: { note: { id: string; title: string; time: string } 
   const handleCancelDelete = () => {
     setShowDeleteModal(false)
   }
-
-  // Dropdown for 3-dots
-  const dropdown = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="focus:ring-primary ml-2 flex cursor-pointer items-center justify-center rounded p-1 hover:bg-gray-200 group-data-[state=selected]/note:hover:bg-gray-300 focus:ring-2 focus:outline-none"
-          tabIndex={0}
-          aria-label="Meer opties"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <MoreHorizontal className="size-5 text-gray-500" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent
-          className="animate-fade-in z-50 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-          sideOffset={8}
-          align="end"
-        >
-          <DropdownMenuItem
-            onSelect={handleDeleteClick}
-            className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
-          >
-            <Trash className="size-4 text-red-600" />
-            Delete note
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
-    </DropdownMenu>
-  )
 
   // Context menu for right click
   return (
@@ -96,7 +65,33 @@ function NoteItem({ note }: { note: { id: string; title: string; time: string } 
                 </p>
                 <p className="mt-1 text-xs text-gray-400">{note.time}</p>
               </div>
-              {dropdown}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="focus:ring-primary ml-2 flex cursor-pointer items-center justify-center rounded p-1 hover:bg-gray-200 group-data-[state=selected]/note:hover:bg-gray-300 focus:ring-2 focus:outline-none"
+                    tabIndex={0}
+                    aria-label="Meer opties"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="size-5 text-gray-500" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuContent
+                    className="animate-fade-in z-50 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                    sideOffset={8}
+                    align="end"
+                  >
+                    <DropdownMenuItem
+                      onSelect={handleDeleteClick}
+                      className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
+                    >
+                      <Trash className="size-4 text-red-600" />
+                      Delete note
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenuPortal>
+              </DropdownMenu>
             </div>
           </div>
         </ContextMenuTrigger>
@@ -112,7 +107,7 @@ function NoteItem({ note }: { note: { id: string; title: string; time: string } 
           </ContextMenuContent>
         </ContextMenuPortal>
       </ContextMenu>
-      <DeleteNoteModal
+      <DeleteNoteDialog
         title={note.title || 'Untitled'}
         open={showDeleteModal}
         onCancel={handleCancelDelete}
