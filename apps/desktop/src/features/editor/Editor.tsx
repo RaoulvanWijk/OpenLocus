@@ -4,6 +4,8 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useEffect, useRef } from 'react'
 import { AutoSaveExtension } from './auto-save/AutoSaveExtension'
+import { Find } from './find/Find'
+import { FindExtension } from './find/FindExtension'
 import { useEditorContext } from './hooks/use-editor-context'
 import { SaveStatus } from './SaveStatus'
 
@@ -14,6 +16,7 @@ export function Editor({ note }: { note: NoteData }) {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      FindExtension,
       AutoSaveExtension.configure({
         onLocalUpdate: (title: string, updatedAt: string) =>
           updateNote(noteIdRef.current, title, updatedAt),
@@ -24,12 +27,12 @@ export function Editor({ note }: { note: NoteData }) {
       }),
     ],
     content: note.content || '<h1>',
+
     autofocus: true,
     editorProps: {
       attributes: {
         spellcheck: 'true',
-        class:
-          'prose prose-sm sm:prose-base focus:outline-none max-w-full wrap-anywhere min-h-full w-full p-4',
+        class: 'prose prose-sm sm:prose-base focus:outline-none max-w-full min-h-full w-full p-4',
       },
     },
   })
@@ -45,6 +48,7 @@ export function Editor({ note }: { note: NoteData }) {
   return (
     <>
       <SaveStatus />
+      <Find editor={editor} />
       <EditorContent className="relative min-w-0 flex-1 overflow-hidden" editor={editor} />
     </>
   )

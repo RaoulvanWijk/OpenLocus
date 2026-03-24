@@ -16,7 +16,7 @@ export function NotesSidebar() {
     <aside className="relative flex h-screen w-64 shrink-0 flex-col gap-3 border-r bg-gray-50 p-3">
       <button
         onClick={handleCreateNote}
-        className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 shadow-sm"
+        className="flex h-9.5 cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 shadow-sm"
       >
         <Plus className="size-3.5 stroke-3" />
         <span className="text-sm font-medium text-gray-800">New Note</span>
