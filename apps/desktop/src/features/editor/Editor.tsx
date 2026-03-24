@@ -26,7 +26,7 @@ export function Editor({ note }: { note: NoteData }) {
         onStatusChange: setSaveStatus,
       }),
     ],
-    content: note.content || '<h1>',
+    content: note.content || '<h1></h1>',
 
     autofocus: true,
     editorProps: {
@@ -40,7 +40,7 @@ export function Editor({ note }: { note: NoteData }) {
   useEffect(() => {
     noteIdRef.current = note.id
     if (editor && editor.getHTML() !== note.content) {
-      editor.commands.setContent(note.content || '<h1>', { emitUpdate: false })
+      editor.commands.setContent(note.content || '<h1></h1>', { emitUpdate: false })
       editor.commands.focus()
     }
   }, [note.id])
