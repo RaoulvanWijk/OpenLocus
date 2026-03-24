@@ -49,7 +49,7 @@ export function Editor({ note }: { note: NoteData }) {
     <>
       <SaveStatus />
       <Find editor={editor} />
-      <EditorContent className="relative min-w-0 flex-1 overflow-hidden" editor={editor} />
+      <EditorContent className="min-w-0 flex-1" editor={editor} />
     </>
   )
 }
