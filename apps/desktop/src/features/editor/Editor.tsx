@@ -1,11 +1,12 @@
+import { NoteData } from '@/routes/notes/$id'
 import { EditorContent, useEditor } from '@tiptap/react'
-
 import StarterKit from '@tiptap/starter-kit'
+import { useEffect } from 'react'
 
-export function Editor() {
+export function Editor({ note }: { note: NoteData }) {
   const editor = useEditor({
     extensions: [StarterKit],
-    content: '<h1/>',
+    content: note.content,
     autofocus: true,
     editorProps: {
       attributes: {
@@ -14,6 +15,12 @@ export function Editor() {
       },
     },
   })
+
+  useEffect(() => {
+    if (editor && editor.getHTML() !== note.content) {
+      editor.commands.setContent(note.content, { emitUpdate: false })
+    }
+  }, [note.id])
 
   return (
     <div className="flex flex-1 flex-col">
