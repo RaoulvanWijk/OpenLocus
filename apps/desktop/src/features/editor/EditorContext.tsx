@@ -56,8 +56,34 @@ export default function EditorContextProvider({
 
   const updateNote = useCallback((id: string, title: string, updatedAt: string) => {
     setAvailableNotes((prev) => {
-      const updated = prev.map((n) => (n.id === id ? { ...n, title, updatedAt } : n))
-      return [...updated].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      const index = prev.findIndex((n) => n.id === id)
+      if (index === -1) {
+        return prev
+      }
+
+      const existing = prev[index]
+      if (existing.title === title && existing.updatedAt === updatedAt) {
+        return prev
+      }
+
+      const updatedNote: Note = { ...existing, title, updatedAt }
+      const next = prev.slice()
+      next.splice(index, 1)
+
+      if (next.length === 0) {
+        return [updatedNote]
+      }
+
+      let insertIndex = 0
+      while (
+        insertIndex < next.length &&
+        next[insertIndex].updatedAt.localeCompare(updatedAt) >= 0
+      ) {
+        insertIndex += 1
+      }
+
+      next.splice(insertIndex, 0, updatedNote)
+      return next
     })
   }, [])
 
