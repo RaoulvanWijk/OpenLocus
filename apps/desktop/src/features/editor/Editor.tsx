@@ -15,14 +15,15 @@ export function Editor({ note }: { note: NoteData }) {
     extensions: [
       StarterKit,
       AutoSaveExtension.configure({
-        onLocalUpdate: (title: string, updatedAt: string) => updateNote(noteIdRef.current, title, updatedAt),
+        onLocalUpdate: (title: string, updatedAt: string) =>
+          updateNote(noteIdRef.current, title, updatedAt),
         onSave: async (content: string, title: string) => {
           await invoke('document_update', { id: noteIdRef.current, content, title })
         },
         onStatusChange: setSaveStatus,
       }),
     ],
-    content: note.content,
+    content: note.content || '<h1>',
     autofocus: true,
     editorProps: {
       attributes: {
@@ -35,7 +36,7 @@ export function Editor({ note }: { note: NoteData }) {
   useEffect(() => {
     noteIdRef.current = note.id
     if (editor && editor.getHTML() !== note.content) {
-      editor.commands.setContent(note.content, { emitUpdate: false })
+      editor.commands.setContent(note.content || '<h1>', { emitUpdate: false })
     }
   }, [note.id])
 

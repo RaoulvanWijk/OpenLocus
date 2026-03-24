@@ -37,62 +37,63 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
     }
   },
 
-  onUpdate() {
-    const { options, editor } = this
+  addStorage() {
+    return {
+      debounceTimer: undefined as ReturnType<typeof setTimeout> | undefined,
+      maxWaitTimer: undefined as ReturnType<typeof setTimeout> | undefined,
+      pendingSave: undefined as PendingSave | undefined,
+      isSaving: false,
+    }
+  },
 
+  onUpdate() {
+    const { editor, options, storage } = this
     const title = extractTitle(editor.state.doc)
 
     options.onStatusChange('saving')
     options.onLocalUpdate(title, new Date().toISOString())
 
-    this.storage.pendingSave = {
-      content: editor.getHTML(),
-      title,
-    }
+    storage.pendingSave = { content: editor.getHTML(), title }
 
-    clearTimeout(this.storage.debounceTimer)
-    this.storage.debounceTimer = setTimeout(() => {
+    clearTimeout(storage.debounceTimer)
+    storage.debounceTimer = setTimeout(() => {
       void this.storage.flushPending()
     }, options.debounceMs)
 
-    if (!this.storage.maxWaitTimer) {
-      this.storage.maxWaitTimer = setTimeout(() => {
+    if (!storage.maxWaitTimer) {
+      storage.maxWaitTimer = setTimeout(() => {
         void this.storage.flushPending()
       }, options.maxWaitMs)
     }
   },
 
   onDestroy() {
-    clearTimeout(this.storage.debounceTimer)
-    clearTimeout(this.storage.maxWaitTimer)
-    if (this.storage.pendingSave && !this.storage.isSaving) {
+    const { storage } = this
+    clearTimeout(storage.debounceTimer)
+    clearTimeout(storage.maxWaitTimer)
+    if (storage.pendingSave && !storage.isSaving) {
       void this.storage.flushPending()
     }
   },
 
-  addStorage() {
+  onCreate() {
+    const storage = this.storage
     const options = this.options
+    this.storage.flushPending = async () => {
+      clearTimeout(storage.debounceTimer)
+      clearTimeout(storage.maxWaitTimer)
+      storage.debounceTimer = undefined
+      storage.maxWaitTimer = undefined
 
-    let debounceTimer: ReturnType<typeof setTimeout> | undefined
-    let maxWaitTimer: ReturnType<typeof setTimeout> | undefined
-    let pendingSave: PendingSave | undefined
-    let isSaving = false
-
-    const flushPending = async () => {
-      clearTimeout(debounceTimer)
-      clearTimeout(maxWaitTimer)
-      debounceTimer = undefined
-      maxWaitTimer = undefined
-
-      if (isSaving || !pendingSave) {
+      if (storage.isSaving || !storage.pendingSave) {
         return
       }
 
-      isSaving = true
+      storage.isSaving = true
 
-      while (pendingSave) {
-        const currentSave = pendingSave
-        pendingSave = undefined
+      while (storage.pendingSave) {
+        const currentSave = storage.pendingSave
+        storage.pendingSave = undefined
 
         try {
           await options.onSave(currentSave.content, currentSave.title)
@@ -102,18 +103,7 @@ export const AutoSaveExtension = Extension.create<AutoSaveOptions>({
         }
       }
 
-      isSaving = false
-    }
-
-    return {
-      get debounceTimer() { return debounceTimer },
-      set debounceTimer(v) { debounceTimer = v },
-      get maxWaitTimer() { return maxWaitTimer },
-      set maxWaitTimer(v) { maxWaitTimer = v },
-      get pendingSave() { return pendingSave },
-      set pendingSave(v) { pendingSave = v },
-      get isSaving() { return isSaving },
-      flushPending,
+      storage.isSaving = false
     }
   },
 })
