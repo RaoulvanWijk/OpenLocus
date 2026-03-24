@@ -6,7 +6,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
   return (
     <div className="flex flex-wrap items-center gap-1 border-b p-2">
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('bold')}
         onMouseDown={(e) => {
@@ -17,7 +16,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         <span className="font-bold">B</span>
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('italic')}
         onMouseDown={(e) => {
@@ -28,7 +26,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         <span className="italic">I</span>
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('strike')}
         onMouseDown={(e) => {
@@ -39,7 +36,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         <span className="line-through">S</span>
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('code')}
         onMouseDown={(e) => {
@@ -53,7 +49,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       <Separator orientation="vertical" className="mx-1 h-4" />
 
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('heading', { level: 1 })}
         onMouseDown={(e) => {
@@ -64,7 +59,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         H1
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('heading', { level: 2 })}
         onMouseDown={(e) => {
@@ -75,7 +69,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         H2
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('heading', { level: 3 })}
         onMouseDown={(e) => {
@@ -89,7 +82,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       <Separator orientation="vertical" className="mx-1 h-4" />
 
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('bulletList')}
         onMouseDown={(e) => {
@@ -100,7 +92,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         • List
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('orderedList')}
         onMouseDown={(e) => {
@@ -111,7 +102,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         1. List
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('blockquote')}
         onMouseDown={(e) => {
@@ -122,7 +112,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         Quote
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         data-active={editor.isActive('codeBlock')}
         onMouseDown={(e) => {
@@ -136,7 +125,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       <Separator orientation="vertical" className="mx-1 h-4" />
 
       <Button
-        variant="toolbar"
         size="xs"
         disabled={!editor.can().undo()}
         onMouseDown={(e) => {
@@ -147,7 +135,6 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         Undo
       </Button>
       <Button
-        variant="toolbar"
         size="xs"
         disabled={!editor.can().redo()}
         onMouseDown={(e) => {
