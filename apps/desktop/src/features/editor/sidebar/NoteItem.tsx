@@ -105,7 +105,7 @@ export default function NoteItem({ note }: NoteItemProps) {
       <DeleteNoteDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title={note.title}
+        title={note.title || 'Untitled'}
         onConfirm={handleConfirmDelete}
       />
     </>
