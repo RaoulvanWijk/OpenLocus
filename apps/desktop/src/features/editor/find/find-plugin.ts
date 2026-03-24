@@ -40,8 +40,16 @@ function buildMatches(
 
 // Persistent Highlight objects are mutated in place — replacing them in the
 // registry doesn't reliably trigger a repaint in all WebView implementations.
-const findHighlight = new Highlight()
-const findActiveHighlight = new Highlight()
+// Instantiated lazily so module import doesn't throw in environments without
+// the CSS Custom Highlights API.
+let findHighlight: Highlight | null = null
+let findActiveHighlight: Highlight | null = null
+
+function getHighlights(): { find: Highlight; findActive: Highlight } {
+  findHighlight ??= new Highlight()
+  findActiveHighlight ??= new Highlight()
+  return { find: findHighlight, findActive: findActiveHighlight }
+}
 
 let lastAppliedState: FindState | null = null
 
@@ -49,12 +57,13 @@ function applyHighlights(view: EditorView, pluginState: FindState): void {
   if (!('highlights' in CSS)) return
 
   const highlights = CSS.highlights as unknown as Map<string, Highlight>
+  const { find, findActive } = getHighlights()
 
-  if (!highlights.has('find')) highlights.set('find', findHighlight)
-  if (!highlights.has('find-active')) highlights.set('find-active', findActiveHighlight)
+  if (!highlights.has('find')) highlights.set('find', find)
+  if (!highlights.has('find-active')) highlights.set('find-active', findActive)
 
-  findHighlight.clear()
-  findActiveHighlight.clear()
+  find.clear()
+  findActive.clear()
 
   if (!pluginState.term || pluginState.matches.length === 0) return
 
@@ -68,9 +77,9 @@ function applyHighlights(view: EditorView, pluginState: FindState): void {
       range.setStart(from.node, from.offset)
       range.setEnd(to.node, to.offset)
       if (i === pluginState.activeIndex) {
-        findActiveHighlight.add(range)
+        findActive.add(range)
       } else {
-        findHighlight.add(range)
+        find.add(range)
       }
     } catch {
       // position out of DOM bounds — skip
@@ -130,8 +139,8 @@ export function createFindPlugin(): Plugin<FindState> {
         },
         destroy() {
           if (!('highlights' in CSS)) return
-          findHighlight.clear()
-          findActiveHighlight.clear()
+          findHighlight?.clear()
+          findActiveHighlight?.clear()
           const highlights = CSS.highlights as unknown as Map<string, Highlight>
           highlights.delete('find')
           highlights.delete('find-active')
