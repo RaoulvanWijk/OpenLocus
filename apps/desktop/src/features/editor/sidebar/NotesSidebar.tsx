@@ -1,10 +1,10 @@
-import { useEditor } from '@/features/editor/hooks/use-editor'
+import { useEditorContext } from '@/features/editor/hooks/use-editor-context'
 import { useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import NoteItem from './NoteItem'
 
 export function NotesSidebar() {
-  const { availableNotes, createNote } = useEditor()
+  const { availableNotes, createNote } = useEditorContext()
   const navigate = useNavigate()
 
   const handleCreateNote = async () => {
@@ -13,7 +13,7 @@ export function NotesSidebar() {
   }
 
   return (
-    <aside className="relative flex h-screen w-64 flex-col gap-3 border-r bg-gray-50 p-3">
+    <aside className="relative flex h-screen w-64 shrink-0 flex-col gap-3 border-r bg-gray-50 p-3">
       <button
         onClick={handleCreateNote}
         className="flex h-9.5 cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 shadow-sm"
