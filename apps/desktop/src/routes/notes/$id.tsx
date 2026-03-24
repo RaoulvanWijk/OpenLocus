@@ -3,7 +3,7 @@ import { GlobalErrorView } from '@/features/error/GlobalErrorView'
 import { createFileRoute } from '@tanstack/react-router'
 import { invoke } from '@tauri-apps/api/core'
 
-type NoteData = {
+export type NoteData = {
   id: string
   title: string
   created_at: string
@@ -21,12 +21,11 @@ export const Route = createFileRoute('/notes/$id')({
 })
 
 function RouteComponent() {
-  const { id } = Route.useParams()
   const { note } = Route.useLoaderData()
 
   return (
     <main className="flex min-h-svh flex-1 flex-col">
-      <Editor key={id} noteId={id} initialContent={note.content} />
+      <Editor note={note} />
     </main>
   )
 }

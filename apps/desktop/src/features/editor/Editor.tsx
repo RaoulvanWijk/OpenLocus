@@ -1,39 +1,42 @@
+import { NoteData } from '@/routes/notes/$id'
 import { invoke } from '@tauri-apps/api/core'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import { useEffect } from 'react'
 import { AutoSaveExtension } from './auto-save/AutoSaveExtension'
 import { useEditorContext } from './hooks/use-editor-context'
 import { SaveStatus } from './SaveStatus'
 
-type EditorProps = {
-  noteId: string
-  initialContent: string
-}
-
-export function Editor({ noteId, initialContent }: EditorProps) {
+export function Editor({ note }: { note: NoteData }) {
   const { updateNote, setSaveStatus } = useEditorContext()
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       AutoSaveExtension.configure({
-        noteId,
-        onLocalUpdate: (title: string, updatedAt: string) => updateNote(noteId, title, updatedAt),
+        noteId: note.id,
+        onLocalUpdate: (title: string, updatedAt: string) => updateNote(note.id, title, updatedAt),
         onSave: async (content: string, title: string) => {
-          await invoke('document_update', { id: noteId, content, title })
+          await invoke('document_update', { id: note.id, content, title })
         },
         onStatusChange: setSaveStatus,
       }),
     ],
-    content: initialContent || '<h1>',
+    content: note.content,
     autofocus: true,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-full p-4',
         spellcheck: 'true',
+        class: 'prose prose-sm sm:prose-base focus:outline-none min-h-full p-4',
       },
     },
   })
+
+  useEffect(() => {
+    if (editor && editor.getHTML() !== note.content) {
+      editor.commands.setContent(note.content, { emitUpdate: false })
+    }
+  }, [note.id])
 
   return (
     <div className="flex flex-1 flex-col">
