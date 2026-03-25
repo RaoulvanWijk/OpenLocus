@@ -124,3 +124,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+::highlight(find) {
+  background-color: oklch(0.973 0.127 101.54 / 70%);
+}
+
+::highlight(find-active) {
+  background-color: oklch(0.75 0.179 55.93 / 80%);
+}

@@ -7,7 +7,6 @@ export function EditorBubbleMenu({ editor }: { editor: Editor }) {
     <BubbleMenu editor={editor}>
       <div className="flex gap-1 rounded-md border bg-white p-1 shadow-lg">
         <Button
-          variant="toolbar"
           size="xs"
           data-active={editor.isActive('bold')}
           onMouseDown={(e) => {
@@ -18,7 +17,6 @@ export function EditorBubbleMenu({ editor }: { editor: Editor }) {
           <span className="font-bold">B</span>
         </Button>
         <Button
-          variant="toolbar"
           size="xs"
           data-active={editor.isActive('italic')}
           onMouseDown={(e) => {
@@ -29,7 +27,6 @@ export function EditorBubbleMenu({ editor }: { editor: Editor }) {
           <span className="italic">I</span>
         </Button>
         <Button
-          variant="toolbar"
           size="xs"
           data-active={editor.isActive('strike')}
           onMouseDown={(e) => {
