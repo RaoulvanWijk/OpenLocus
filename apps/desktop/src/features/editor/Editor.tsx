@@ -10,7 +10,7 @@ import { useEditorContext } from './hooks/use-editor-context'
 import { SaveStatus } from './SaveStatus'
 
 export function Editor({ note }: { note: NoteData }) {
-  const { updateNote, setSaveStatus } = useEditorContext()
+  const { updateNote, setSaveStatus, setActiveNoteContent } = useEditorContext()
   const noteIdRef = useRef(note.id)
 
   const editor = useEditor({
@@ -22,6 +22,7 @@ export function Editor({ note }: { note: NoteData }) {
           updateNote(noteIdRef.current, title, updatedAt),
         onSave: async (content: string, title: string) => {
           await invoke('document_update', { id: noteIdRef.current, content, title })
+          setActiveNoteContent(content)
         },
         onStatusChange: setSaveStatus,
       }),
@@ -43,6 +44,7 @@ export function Editor({ note }: { note: NoteData }) {
       editor.commands.setContent(note.content || '<h1></h1>', { emitUpdate: false })
       editor.commands.focus()
     }
+    setActiveNoteContent(note.content || '')
   }, [note.id])
 
   return (
