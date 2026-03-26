@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Message } from './hooks/use-chat'
+import { MarkdownRenderer } from './MarkdownRenderer'
 
 type MessageListProps = {
   messages: Message[]
@@ -41,10 +42,14 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
             className={
               message.role === 'user'
                 ? 'bg-primary text-primary-foreground max-w-[85%] rounded-lg px-3 py-2 text-xs'
-                : 'bg-muted max-w-[85%] rounded-lg px-3 py-2 text-xs whitespace-pre-wrap'
+                : 'bg-muted max-w-[85%] rounded-lg px-3 py-2 text-xs **:text-xs'
             }
           >
-            {message.content}
+            {message.role === 'assistant' ? (
+              <MarkdownRenderer content={message.content} />
+            ) : (
+              message.content
+            )}
             {message.role === 'assistant' && isStreaming && index === messages.length - 1 && (
               <span className="ml-0.5 inline-block h-3 w-1 animate-pulse bg-current align-middle" />
             )}
