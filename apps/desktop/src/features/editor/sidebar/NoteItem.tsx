@@ -12,6 +12,7 @@ import {
   DropdownMenuPortal,
   DropdownMenuTrigger,
 } from '@openlocus/ui/components/dropdown-menu'
+import { ResizableSidebarMenuButton } from '@openlocus/ui/components/resizable-sidebar'
 import { cn } from '@openlocus/ui/lib/utils'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { MoreHorizontal, Trash } from 'lucide-react'
@@ -44,56 +45,66 @@ function NoteItem({ note }: { note: { id: string; title: string; time: string } 
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div
+          <ResizableSidebarMenuButton
             onClick={() => navigate({ to: '/notes/$id', params: { id: note.id } })}
             data-state={currentId === note.id ? 'selected' : 'deselected'}
+            size="auto"
+            variant="ghost"
             className={cn(
-              'group/note bg-sidebar relative z-10 cursor-pointer rounded-lg border border-transparent px-4 py-3 transition-colors duration-200',
+              'bg-sidebar relative z-10 flex cursor-pointer items-center justify-between rounded-lg border border-transparent px-4 transition-colors duration-200 group-data-[collapsible=icon]:p-0!',
               'hover:bg-gray-200!',
-              'data-[state=selected]:border-border data-[state=selected]:bg-white data-[state=selected]:text-black data-[state=selected]:shadow-sm data-[state=selected]:hover:bg-gray-100',
+              'data-[state=selected]:border-gray-200 data-[state=selected]:bg-white data-[state=selected]:text-black data-[state=selected]:shadow-sm data-[state=selected]:hover:bg-gray-100',
               'before:absolute before:top-0 before:bottom-0 before:left-0 before:my-auto before:h-8/12 before:w-0.75 before:rounded-r-full before:bg-[#1F2937] before:opacity-0 before:content-["\\"] data-[state=selected]:before:opacity-100',
             )}
           >
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p
-                  className={cn('truncate text-sm font-semibold', {
+            {/* <div className="flex size-8 shrink-0 items-center justify-center">
+              <span className="text-sm font-semibold">
+                {(note.title || 'U')[0]}
+              </span>
+            </div> */}
+            <span className="min-w-0 flex-1">
+              <p
+                className={cn(
+                  'flex items-center truncate pl-1 text-sm font-semibold text-clip whitespace-nowrap',
+                  {
                     'text-gray-400 italic': note.title === '',
-                  })}
+                  },
+                )}
+              >
+                {note.title || 'Untitled'}
+              </p>
+              <p className="mt-1 truncate text-xs text-gray-400 group-data-[collapsible=icon]:hidden">
+                {note.time}
+              </p>
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="focus:ring-primary ml-2 flex cursor-pointer items-center justify-center rounded p-1 group-data-[collapsible=icon]:size-0! hover:bg-gray-200 group-data-[state=selected]/note:hover:bg-gray-300 focus:ring-2 focus:outline-none"
+                  tabIndex={0}
+                  aria-label="Meer opties"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {note.title || 'Untitled'}
-                </p>
-                <p className="mt-1 text-xs text-gray-400">{note.time}</p>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="focus:ring-primary ml-2 flex cursor-pointer items-center justify-center rounded p-1 hover:bg-gray-200 group-data-[state=selected]/note:hover:bg-gray-300 focus:ring-2 focus:outline-none"
-                    tabIndex={0}
-                    aria-label="Meer opties"
-                    onClick={(e) => e.stopPropagation()}
+                  <MoreHorizontal className="size-5 text-gray-500" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuContent
+                  className="animate-fade-in z-50 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                  sideOffset={8}
+                  align="end"
+                >
+                  <DropdownMenuItem
+                    onSelect={handleDeleteClick}
+                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
                   >
-                    <MoreHorizontal className="size-5 text-gray-500" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuContent
-                    className="animate-fade-in z-50 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-                    sideOffset={8}
-                    align="end"
-                  >
-                    <DropdownMenuItem
-                      onSelect={handleDeleteClick}
-                      className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
-                    >
-                      <Trash className="size-4 text-red-600" />
-                      Delete note
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenuPortal>
-              </DropdownMenu>
-            </div>
-          </div>
+                    <Trash className="size-4 text-red-600" />
+                    Delete note
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenuPortal>
+            </DropdownMenu>
+          </ResizableSidebarMenuButton>
         </ContextMenuTrigger>
         <ContextMenuPortal>
           <ContextMenuContent className="animate-fade-in z-50 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">

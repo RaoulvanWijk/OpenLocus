@@ -187,14 +187,20 @@ function ResizableSidebar({
   collapsedSize?: number | string
   id?: string
 }) {
-  const { isMobile, state, openMobile, setOpenMobile, setOpen, panelRef } = useResizableSidebar()
+  const { isMobile, openMobile, setOpenMobile, setOpen } = useResizableSidebar()
+  const localPanelRef = React.useRef<ResizablePrimitive.PanelImperativeHandle>(null)
+  const [localState, setLocalState] = React.useState<'expanded' | 'collapsed'>('expanded')
 
   const handleResize = React.useCallback(() => {
-    const panel = panelRef.current
+    const panel = localPanelRef.current
     if (panel) {
-      setOpen(!panel.isCollapsed())
+      const collapsed = panel.isCollapsed()
+      setLocalState(collapsed ? 'collapsed' : 'expanded')
+      setOpen(!collapsed)
     }
-  }, [panelRef, setOpen])
+  }, [setOpen])
+
+  const state = localState
 
   const resolvedCollapsedSize = collapsedSize ?? (collapsible === 'icon' ? '3rem' : 0)
 
@@ -208,11 +214,7 @@ function ResizableSidebar({
         defaultSize={defaultSize}
         minSize={minSize}
         maxSize={maxSize}
-        className={cn(
-          'bg-sidebar text-sidebar-foreground flex h-full flex-col',
-          side === 'left' ? 'border-r' : 'border-l',
-          className,
-        )}
+        className={cn('bg-sidebar text-sidebar-foreground flex h-full flex-col', className)}
       >
         {children}
       </ResizablePrimitive.Panel>
@@ -242,10 +244,8 @@ function ResizableSidebar({
 
   return (
     <ResizablePrimitive.Panel
-      panelRef={panelRef}
+      panelRef={localPanelRef}
       data-slot="sidebar"
-      data-state={state}
-      data-collapsible={collapsible}
       data-side={side}
       id={id}
       defaultSize={defaultSize}
@@ -254,16 +254,15 @@ function ResizableSidebar({
       collapsible
       collapsedSize={resolvedCollapsedSize}
       onResize={handleResize}
-      className={cn(
-        'group bg-sidebar text-sidebar-foreground flex h-full flex-col overflow-hidden transition-[flex-basis] duration-200 ease-linear',
-        side === 'left' ? 'border-r' : 'border-l',
-        className,
-      )}
     >
       <div
-        data-sidebar="sidebar"
+        className={cn(
+          'group bg-sidebar text-sidebar-foreground flex h-full w-full flex-col overflow-hidden transition-[flex-basis] duration-200 ease-linear',
+          className,
+        )}
         data-slot="sidebar-inner"
-        className="flex h-full w-full flex-col overflow-hidden"
+        data-state={state}
+        data-collapsible={state === 'collapsed' ? collapsible : ''}
       >
         {children}
       </div>
@@ -297,7 +296,7 @@ function ResizableSidebarHandle({
         mouseDownX.current = null
       }}
       className={cn(
-        'hover:bg-sidebar-border focus-visible:ring-ring relative flex w-px items-center justify-center after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:outline-hidden',
+        'bg-border focus-visible:ring-ring relative flex w-px items-center justify-center after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:outline-hidden',
         className,
       )}
       {...props}
@@ -422,7 +421,7 @@ function ResizableSidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn('bg-border mx-2 w-auto', className)}
+      className={cn('bg-border data-[orientation=horizontal]:w-auto', className)}
       {...props}
     />
   )
@@ -535,11 +534,13 @@ const sidebarMenuButtonVariants = cva(
         default: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
         outline:
           'bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]',
+        ghost: '',
       },
       size: {
         default: 'h-8 text-sm',
         sm: 'h-7 text-xs',
         lg: 'h-12 text-sm group-data-[collapsible=icon]:p-0!',
+        auto: 'h-auto text-sm',
       },
     },
     defaultVariants: {
