@@ -20,7 +20,7 @@ export const Route = createFileRoute('/notes/$id')({
 })
 
 function RouteComponent() {
-  const { id } = Route.useParams()
+  // const { id } = Route.useParams()
   const { note } = Route.useLoaderData()
 
   return (

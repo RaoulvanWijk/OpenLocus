@@ -1,4 +1,14 @@
 import { useEditor } from '@/features/editor/hooks/use-editor'
+import {
+  ResizableSidebar,
+  ResizableSidebarContent,
+  ResizableSidebarGroup,
+  ResizableSidebarHeader,
+  ResizableSidebarMenu,
+  ResizableSidebarMenuButton,
+  ResizableSidebarMenuItem,
+  ResizableSidebarSeparator,
+} from '@openlocus/ui/components/resizable-sidebar'
 import { useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import NoteItem from './NoteItem'
@@ -13,22 +23,42 @@ export function NotesSidebar() {
   }
 
   return (
-    <aside className="relative flex h-screen flex-col gap-3 border-r bg-gray-50 p-3">
-      <button
-        onClick={handleCreateNote}
-        className="flex h-9.5 cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 shadow-sm"
-      >
-        <Plus className="size-3.5 stroke-3" />
-        <span className="text-sm font-medium text-gray-800">New Note</span>
-      </button>
-
-      <div className="bg-border h-px" />
-
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
-        {availableNotes.map((note) => (
-          <NoteItem note={note} key={note.id} />
-        ))}
-      </div>
-    </aside>
+    <ResizableSidebar
+      collapsible="icon"
+      defaultSize="16rem"
+      minSize="10rem"
+      maxSize="24rem"
+      collapsedSize="3rem"
+      className="relative flex h-screen flex-col gap-3 bg-gray-50"
+    >
+      <ResizableSidebarHeader>
+        <ResizableSidebarMenu>
+          <ResizableSidebarMenuItem>
+            <ResizableSidebarMenuButton
+              onClick={handleCreateNote}
+              className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white shadow-sm"
+            >
+              <div className="flex size-8 items-center justify-center">
+                <Plus className="size-3.5 stroke-3" />
+              </div>
+              <span className="text-sm font-medium text-gray-800">New Note</span>
+            </ResizableSidebarMenuButton>
+          </ResizableSidebarMenuItem>
+        </ResizableSidebarMenu>
+      </ResizableSidebarHeader>
+      <ResizableSidebarSeparator />
+      <ResizableSidebarContent>
+        <ResizableSidebarGroup>
+          {/* <div className="flex flex-1 flex-col gap-2 overflow-y-auto"> */}
+          <ResizableSidebarMenu>
+            {availableNotes.map((note) => (
+              <ResizableSidebarMenuItem key={note.id}>
+                <NoteItem note={note} />
+              </ResizableSidebarMenuItem>
+            ))}
+          </ResizableSidebarMenu>
+        </ResizableSidebarGroup>
+      </ResizableSidebarContent>
+    </ResizableSidebar>
   )
 }
