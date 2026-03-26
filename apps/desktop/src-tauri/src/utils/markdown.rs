@@ -53,11 +53,13 @@ pub fn read_document_meta(path: &PathBuf) -> Option<DocumentMeta> {
     let id = parse_frontmatter_field(&frontmatter, "id")?;
     let title = parse_frontmatter_field(&frontmatter, "title").unwrap_or_default();
     let created_at = parse_frontmatter_field(&frontmatter, "created_at").unwrap_or_default();
+    let updated_at = parse_frontmatter_field(&frontmatter, "updated_at").unwrap_or_default();
 
     Some(DocumentMeta {
         id,
         title,
         created_at,
+        updated_at,
         path: path.to_string_lossy().to_string(),
     })
 }

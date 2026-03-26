@@ -1,4 +1,3 @@
-import { useEditor } from '@/features/editor/hooks/use-editor'
 import {
   ResizableSidebar,
   ResizableSidebarContent,
@@ -11,10 +10,11 @@ import {
 } from '@openlocus/ui/components/resizable-sidebar'
 import { useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
+import { useEditorContext } from '../hooks/use-editor-context'
 import NoteItem from './NoteItem'
 
 export function NotesSidebar() {
-  const { availableNotes, createNote } = useEditor()
+  const { availableNotes, createNote } = useEditorContext()
   const navigate = useNavigate()
 
   const handleCreateNote = async () => {

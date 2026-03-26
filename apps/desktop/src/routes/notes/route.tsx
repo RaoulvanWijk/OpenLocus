@@ -14,13 +14,13 @@ import { NotesSidebar } from '../../features/editor/sidebar/NotesSidebar'
 export const Route = createFileRoute('/notes')({
   loader: async () => {
     const docs =
-      await invoke<{ id: string; title: string; created_at: string; path: string }[]>(
-        'document_list',
-      )
+      await invoke<
+        { id: string; title: string; created_at: string; updated_at: string; path: string }[]
+      >('document_list')
     const notes: Note[] = docs.map((doc) => ({
       id: doc.id,
       title: doc.title,
-      time: new Date(doc.created_at).toLocaleString(),
+      updatedAt: doc.updated_at || doc.created_at,
     }))
     return { notes }
   },

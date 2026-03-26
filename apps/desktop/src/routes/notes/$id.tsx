@@ -7,6 +7,7 @@ export type NoteData = {
   id: string
   title: string
   created_at: string
+  updated_at: string
   content: string
 }
 
@@ -20,11 +21,10 @@ export const Route = createFileRoute('/notes/$id')({
 })
 
 function RouteComponent() {
-  // const { id } = Route.useParams()
   const { note } = Route.useLoaderData()
 
   return (
-    <main className="flex min-h-svh flex-1 flex-col">
+    <main className="flex min-h-svh min-w-0 flex-1 flex-col">
       <Editor note={note} />
     </main>
   )

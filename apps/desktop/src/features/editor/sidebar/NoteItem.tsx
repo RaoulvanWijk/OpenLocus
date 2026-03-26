@@ -17,30 +17,25 @@ import { cn } from '@openlocus/ui/lib/utils'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { MoreHorizontal, Trash } from 'lucide-react'
 import { useState } from 'react'
-import { useEditor } from '../hooks/use-editor'
+import { useEditorContext } from '../hooks/use-editor-context'
+import { formatNoteDate } from '../utils/format-date'
 import { DeleteNoteDialog } from './DeleteNoteDialog'
 
-function NoteItem({ note }: { note: { id: string; title: string; time: string } }) {
-  const { deleteNote } = useEditor()
+interface NoteItemProps {
+  note: { id: string; title: string; updatedAt: string }
+}
+
+export default function NoteItem({ note }: NoteItemProps) {
+  const { deleteNote } = useEditorContext()
   const navigate = useNavigate()
   const { id: currentId } = useParams({ strict: false })
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-
-  const handleDeleteClick = () => {
-    setShowDeleteModal(true)
-  }
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const handleConfirmDelete = async () => {
     await deleteNote(note.id)
-    setShowDeleteModal(false)
     navigate({ to: '/notes' })
   }
 
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false)
-  }
-
-  // Context menu for right click
   return (
     <>
       <ContextMenu>
@@ -74,10 +69,10 @@ function NoteItem({ note }: { note: { id: string; title: string; time: string } 
                 {note.title || 'Untitled'}
               </p>
               <p className="mt-1 truncate text-xs text-gray-400 group-data-[collapsible=icon]:hidden">
-                {note.time}
+                {formatNoteDate(note.updatedAt)}
               </p>
             </span>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button
                   className="focus:ring-primary ml-2 flex cursor-pointer items-center justify-center rounded p-1 group-data-[collapsible=icon]:size-0! hover:bg-gray-200 group-data-[state=selected]/note:hover:bg-gray-300 focus:ring-2 focus:outline-none"
@@ -95,8 +90,8 @@ function NoteItem({ note }: { note: { id: string; title: string; time: string } 
                   align="end"
                 >
                   <DropdownMenuItem
-                    onSelect={handleDeleteClick}
-                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
+                    onSelect={() => setDeleteOpen(true)}
+                    className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
                   >
                     <Trash className="size-4 text-red-600" />
                     Delete note
@@ -109,8 +104,8 @@ function NoteItem({ note }: { note: { id: string; title: string; time: string } 
         <ContextMenuPortal>
           <ContextMenuContent className="animate-fade-in z-50 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
             <ContextMenuItem
-              onSelect={handleDeleteClick}
-              className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
+              onSelect={() => setDeleteOpen(true)}
+              className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
             >
               <Trash className="size-4 text-red-600" />
               Delete note
@@ -119,13 +114,11 @@ function NoteItem({ note }: { note: { id: string; title: string; time: string } 
         </ContextMenuPortal>
       </ContextMenu>
       <DeleteNoteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
         title={note.title || 'Untitled'}
-        open={showDeleteModal}
-        onCancel={handleCancelDelete}
         onConfirm={handleConfirmDelete}
       />
     </>
   )
 }
-
-export default NoteItem
