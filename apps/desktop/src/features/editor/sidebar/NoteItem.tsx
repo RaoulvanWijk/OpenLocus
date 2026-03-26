@@ -52,23 +52,18 @@ export default function NoteItem({ note }: NoteItemProps) {
               'before:absolute before:top-0 before:bottom-0 before:left-0 before:my-auto before:h-8/12 before:w-0.75 before:rounded-r-full before:bg-[#1F2937] before:opacity-0 before:content-["\\"] data-[state=selected]:before:opacity-100',
             )}
           >
-            {/* <div className="flex size-8 shrink-0 items-center justify-center">
-              <span className="text-sm font-semibold">
-                {(note.title || 'U')[0]}
-              </span>
-            </div> */}
             <span className="min-w-0 flex-1">
               <p
                 className={cn(
-                  'flex items-center truncate pl-1 text-sm font-semibold text-clip whitespace-nowrap',
+                  'flex items-center truncate text-sm font-semibold text-clip whitespace-nowrap group-data-[collapsible=icon]:pl-1',
                   {
-                    'text-gray-400 italic': note.title === '',
+                    'text-gray-400': note.title === '',
                   },
                 )}
               >
                 {note.title || 'Untitled'}
               </p>
-              <p className="mt-1 truncate text-xs text-gray-400 group-data-[collapsible=icon]:hidden">
+              <p className="truncate text-xs text-gray-400 group-data-[collapsible=icon]:hidden">
                 {formatNoteDate(note.updatedAt)}
               </p>
             </span>
