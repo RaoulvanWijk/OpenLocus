@@ -1,4 +1,4 @@
-import { AISidebar } from '@/features/editor/ai/chat/AISidebar'
+import { ChatSidebar } from '@/features/editor/ai/ChatSidebar'
 import type { Note } from '@/features/editor/EditorContext'
 import EditorContextProvider from '@/features/editor/EditorContext'
 import {
@@ -40,7 +40,7 @@ function RouteComponent() {
             <Outlet />
           </ResizableSidebarInset>
           <ResizableSidebarHandle />
-          <AISidebar />
+          <ChatSidebar />
         </ResizableSidebarLayout>
       </ResizableSidebarProvider>
     </EditorContextProvider>
