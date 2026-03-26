@@ -1,5 +1,9 @@
+import { Badge } from '@openlocus/ui/components/badge'
 import { Button } from '@openlocus/ui/components/button'
-import { SendIcon } from 'lucide-react'
+import { useParams } from '@tanstack/react-router'
+import { File, SendIcon } from 'lucide-react'
+import { useMemo } from 'react'
+import { useEditorContext } from '../hooks/use-editor-context'
 import type { UseChatResult } from './hooks/use-chat'
 
 type ChatInputProps = {
@@ -8,6 +12,14 @@ type ChatInputProps = {
 
 export function ChatInput({ chat }: ChatInputProps) {
   const { input, onInputChange, sendMessage, isStreaming, maxLength } = chat
+
+  const { availableNotes } = useEditorContext()
+  const { id: currentNoteId } = useParams({ strict: false })
+  const currentNote = useMemo(
+    () => availableNotes.find((note) => note.id === currentNoteId),
+    [availableNotes, currentNoteId],
+  )
+  const currentNoteTitle = currentNote?.title
 
   const handleSend = () => {
     sendMessage(input)
@@ -18,6 +30,12 @@ export function ChatInput({ chat }: ChatInputProps) {
 
   return (
     <div className="flex shrink-0 flex-col gap-2 border-t px-3 py-2">
+      {currentNoteTitle && (
+        <Badge className="rounded-md" variant="outline">
+          <File />
+          {currentNoteTitle}
+        </Badge>
+      )}
       <textarea
         className="bg-background placeholder:text-muted-foreground focus:ring-ring field-sizing-content max-h-32 min-h-7 flex-1 resize-none rounded-md border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none"
         placeholder="Ask about your note…"

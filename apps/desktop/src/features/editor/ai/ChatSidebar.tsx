@@ -14,6 +14,7 @@ import { useModelSetup } from './hooks/use-model-setup'
 
 export const ChatSidebar = () => {
   const { activeNoteContent } = useEditorContext()
+
   const modelSetup = useModelSetup()
   const chat = useChat(activeNoteContent)
 
