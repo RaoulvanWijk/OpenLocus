@@ -1,11 +1,5 @@
 'use client'
 
-import { cva, type VariantProps } from 'class-variance-authority'
-import { PanelLeftIcon } from 'lucide-react'
-import { Slot } from 'radix-ui'
-import * as React from 'react'
-import * as ResizablePrimitive from 'react-resizable-panels'
-
 import { Button } from '@openlocus/ui/components/button'
 import { Input } from '@openlocus/ui/components/input'
 import { Separator } from '@openlocus/ui/components/separator'
@@ -25,6 +19,11 @@ import {
 } from '@openlocus/ui/components/tooltip'
 import { useIsMobile } from '@openlocus/ui/hooks/use-mobile'
 import { cn } from '@openlocus/ui/lib/utils'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { PanelLeftIcon } from 'lucide-react'
+import { Slot } from 'radix-ui'
+import * as React from 'react'
+import * as ResizablePrimitive from 'react-resizable-panels'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
