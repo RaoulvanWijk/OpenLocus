@@ -74,13 +74,11 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content }: Mark
               {children}
             </code>
           ) : (
-            <code className="text-foreground rounded-xs bg-gray-300 font-mono whitespace-nowrap">
-              {children}
-            </code>
+            <code className="text-foreground rounded-xs bg-gray-300 font-mono">{children}</code>
           ),
 
         pre: ({ children }: ComponentProps) => (
-          <pre className="bg-muted border-muted-foreground/20 overflow-x-auto rounded-md border p-3 font-mono text-xs leading-relaxed">
+          <pre className="border-muted-foreground/20 overflow-x-auto rounded-md border bg-gray-300 p-3 font-mono text-xs leading-relaxed">
             {children}
           </pre>
         ),

@@ -24,7 +24,7 @@ function RouteComponent() {
   const { note } = Route.useLoaderData()
 
   return (
-    <main className="flex min-h-svh min-w-0 flex-1 flex-col">
+    <main className="relative flex min-h-svh min-w-0 flex-1 flex-col">
       <Editor note={note} />
     </main>
   )

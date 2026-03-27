@@ -4,7 +4,7 @@ export function SaveStatus() {
   const { saveStatus } = useEditorContext()
 
   return (
-    <span className="fixed top-2 right-2 text-xs text-gray-400 select-none">
+    <span className="sticky top-2 pr-2 text-right text-xs text-gray-400 select-none">
       {saveStatus === 'saving' && 'Saving...'}
       {saveStatus === 'saved' && 'Saved'}
       {saveStatus === 'error' && 'Error saving'}

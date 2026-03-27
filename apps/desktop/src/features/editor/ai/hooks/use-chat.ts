@@ -16,6 +16,7 @@ export type UseChatResult = {
   chatError: string | null
   sendMessage: (text: string) => void
   onInputChange: (value: string) => void
+  resetChat: () => void
   maxLength: number
 }
 
@@ -153,6 +154,16 @@ export function useChat(noteContent: string): UseChatResult {
     [isStreaming, noteContent],
   )
 
+  const resetChat = useCallback(() => {
+    cleanupRef.current?.()
+    cleanupRef.current = null
+    messagesRef.current = []
+    setMessages([])
+    setInput('')
+    setChatError(null)
+    setIsStreaming(false)
+  }, [])
+
   return {
     messages,
     input,
@@ -160,6 +171,7 @@ export function useChat(noteContent: string): UseChatResult {
     chatError,
     sendMessage,
     onInputChange,
+    resetChat,
     maxLength: INPUT_MAX_LENGTH,
   }
 }
