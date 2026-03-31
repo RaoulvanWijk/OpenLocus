@@ -1,8 +1,21 @@
 import { Button } from '@openlocus/ui/components/button'
 import { Separator } from '@openlocus/ui/components/separator'
 import type { Editor } from '@tiptap/react'
+import { Search } from 'lucide-react'
 
 export function EditorToolbar({ editor }: { editor: Editor }) {
+  const handleFindClick = () => {
+    // Trigger Cmd+F / Ctrl+F to open Find
+    const event = new KeyboardEvent('keydown', {
+      key: 'f',
+      code: 'KeyF',
+      ctrlKey: true,
+      metaKey: true,
+      bubbles: true,
+    })
+    window.dispatchEvent(event)
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-1 border-b p-2">
       <Button
@@ -183,6 +196,16 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         }}
       >
         Redo
+      </Button>
+
+      <Separator orientation="vertical" className="mx-1 h-4" />
+
+      <Button
+        size="xs"
+        onClick={handleFindClick}
+        title="Find (Ctrl+F / Cmd+F)"
+      >
+        <Search className="h-4 w-4" />
       </Button>
     </div>
   )
