@@ -78,6 +78,36 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       >
         H3
       </Button>
+      <Button
+        size="xs"
+        data-active={editor.isActive('heading', { level: 4 })}
+        onMouseDown={(e) => {
+          e.preventDefault()
+          editor.chain().focus().toggleHeading({ level: 4 }).run()
+        }}
+      >
+        H4
+      </Button>
+      <Button
+        size="xs"
+        data-active={editor.isActive('heading', { level: 5 })}
+        onMouseDown={(e) => {
+          e.preventDefault()
+          editor.chain().focus().toggleHeading({ level: 5 }).run()
+        }}
+      >
+        H5
+      </Button>
+      <Button
+        size="xs"
+        data-active={editor.isActive('heading', { level: 6 })}
+        onMouseDown={(e) => {
+          e.preventDefault()
+          editor.chain().focus().toggleHeading({ level: 6 }).run()
+        }}
+      >
+        H6
+      </Button>
 
       <Separator orientation="vertical" className="mx-1 h-4" />
 
