@@ -44,18 +44,18 @@ export default function NoteItem({ note }: NoteItemProps) {
             onClick={() => navigate({ to: '/notes/$id', params: { id: note.id } })}
             data-state={currentId === note.id ? 'selected' : 'deselected'}
             size="auto"
-            variant="ghost"
+            variant="custom"
             className={cn(
-              'bg-sidebar relative z-10 flex cursor-pointer items-start justify-between gap-0 rounded-lg border border-transparent pr-1 pl-4 transition-colors duration-200 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:p-0!',
-              'hover:bg-gray-200!',
-              'data-[state=selected]:border-gray-200 data-[state=selected]:bg-white data-[state=selected]:text-black data-[state=selected]:shadow-sm data-[state=selected]:hover:bg-gray-100',
-              'before:absolute before:top-0 before:bottom-0 before:left-0 before:my-auto before:h-8/12 before:w-0.75 before:rounded-r-full before:bg-[#1F2937] before:opacity-0 before:content-["\\"] data-[state=selected]:before:opacity-100',
+              'group/note-item relative z-10 items-start justify-between gap-0 rounded-lg border border-transparent bg-transparent p-3 transition-colors duration-200 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:p-0!',
+              'hover:bg-sidebar-accent',
+              'data-[state=selected]:border-border data-[state=selected]:bg-white data-[state=selected]:text-black data-[state=selected]:shadow-sm',
+              'before:absolute before:top-0 before:bottom-0 before:left-0 before:my-auto before:h-8/12 before:w-0.5 before:rounded-r-full before:bg-[#1F2937] before:opacity-0 before:content-["\\"] data-[state=selected]:before:opacity-100',
             )}
           >
-            <span className="min-w-0 flex-1">
+            <span className="min-w-0 flex-1 space-y-1">
               <p
                 className={cn(
-                  'truncate text-sm font-semibold whitespace-nowrap group-data-[collapsible=icon]:pl-1 group-data-[collapsible=icon]:text-clip',
+                  'truncate text-sm leading-5 whitespace-nowrap group-data-[collapsible=icon]:pl-1 group-data-[collapsible=icon]:text-clip',
                   {
                     'text-gray-400': note.title === '',
                   },
@@ -63,14 +63,17 @@ export default function NoteItem({ note }: NoteItemProps) {
               >
                 {note.title || 'Untitled'}
               </p>
-              <p className="truncate text-xs text-gray-400 group-data-[collapsible=icon]:hidden">
+              <p className="text-2xs truncate text-gray-400 group-data-[collapsible=icon]:hidden">
                 {formatNoteDate(note.updatedAt)}
               </p>
             </span>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="focus:ring-primary flex cursor-pointer items-center justify-center rounded p-1 group-data-[collapsible=icon]:hidden hover:bg-gray-200 group-data-[state=selected]/note:hover:bg-gray-300 focus:ring-2 focus:outline-none"
+                  className={cn(
+                    'focus:ring-primary hidden cursor-pointer items-center justify-center rounded p-1 hover:bg-gray-200 focus:ring-2 focus:outline-none',
+                    'group-data-[state=selected]/note-item:hover:bg-sidebar-accent group-hover/note-item:flex group-data-[state=selected]/note-item:flex',
+                  )}
                   tabIndex={0}
                   aria-label="Meer opties"
                   onClick={(e) => e.stopPropagation()}

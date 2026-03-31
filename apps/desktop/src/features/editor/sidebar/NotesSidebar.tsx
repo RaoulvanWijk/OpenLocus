@@ -29,27 +29,29 @@ export function NotesSidebar() {
       minSize="10rem"
       maxSize="24rem"
       collapsedSize="3rem"
-      className="relative flex h-screen flex-col gap-2 bg-gray-50 transition-[gap] duration-75 data-[collapsible=icon]:gap-1"
+      className="relative flex h-screen flex-col transition-[gap] duration-75 data-[collapsible=icon]:gap-1"
     >
-      <ResizableSidebarHeader className="px-4 group-data-[collapsible=icon]:px-2">
+      <ResizableSidebarHeader className="px-3 pt-4 pb-3 group-data-[collapsible=icon]:px-2">
         <ResizableSidebarMenu>
           <ResizableSidebarMenuItem>
             <ResizableSidebarMenuButton
               onClick={handleCreateNote}
-              className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white shadow-sm transition-none group-data-[collapsible=icon]:p-0!"
+              variant="outline"
+              size="lg"
+              className="gap-0 px-1"
             >
               <div className="flex aspect-square size-8 items-center justify-center">
-                <Plus className="size-3.5 stroke-3" />
+                <Plus className="size-3.5" />
               </div>
-              <span className="text-sm font-medium text-gray-800">New Note</span>
+              <span className="text-sm text-gray-800">New Note</span>
             </ResizableSidebarMenuButton>
           </ResizableSidebarMenuItem>
         </ResizableSidebarMenu>
       </ResizableSidebarHeader>
       <ResizableSidebarSeparator className="mx-4 group-data-[collapsible=icon]:mx-2" />
       <ResizableSidebarContent>
-        <ResizableSidebarGroup className="px-4 group-data-[collapsible=icon]:px-2">
-          <ResizableSidebarMenu className="gap-2 transition-[gap] group-data-[collapsible=icon]:gap-1">
+        <ResizableSidebarGroup className="px-2.25 pt-2 group-data-[collapsible=icon]:px-1">
+          <ResizableSidebarMenu className="gap-0.5 transition-[gap] group-data-[collapsible=icon]:gap-1">
             {availableNotes.map((note) => (
               <ResizableSidebarMenuItem key={note.id}>
                 <NoteItem note={note} />
