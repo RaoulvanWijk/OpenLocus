@@ -30,6 +30,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
+  --color-border-light: var(--border-light);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
@@ -45,6 +46,11 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-sm: 0px 1px 2px 0px #0000001a, 0px 1px 3px 0px #0000001a;
+  --text-base: 15px;
+  --text-sm: 13px;
+  --text-2xs: 0.625rem;
 }
 
 :root {
@@ -59,12 +65,13 @@
   --primary-foreground: oklch(0.984 0.003 247.858);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
+  --muted: oklch(55.096% 0.02679 264.351);
   --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
+  --accent: oklch(96.826% 0.00696 248.26);
   --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.872 0.0106 261.79);
+  --destructive: oklch(63.78% 0.23729 25.422);
+  --border: oklch(87.198% 0.01067 261.881);
+  --border-light: oklch(96.696% 0.00298 264.792);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -72,11 +79,11 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.9846 0.0017 247.84);
+  --sidebar: oklch(98.463% 0.00181 249.248);
   --sidebar-foreground: oklch(0.129 0.042 264.695);
   --sidebar-primary: oklch(0.208 0.042 265.755);
   --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent: oklch(96.826% 0.00696 248.26);
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
@@ -123,6 +130,11 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@utility thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
 ::highlight(find) {

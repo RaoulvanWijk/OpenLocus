@@ -15,6 +15,8 @@ type EditorContextType = {
   createNote: () => Promise<string>
   deleteNote: (id: string) => Promise<void>
   updateNote: (id: string, title: string, updatedAt: string) => void
+  activeNoteContent: string
+  setActiveNoteContent: (content: string) => void
 }
 
 export const EditorContext = createContext<EditorContextType | null>(null)
@@ -30,6 +32,7 @@ export default function EditorContextProvider({
 }: EditorContextProviderProps) {
   const [availableNotes, setAvailableNotes] = useState<Note[]>(initialNotes)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const [activeNoteContent, setActiveNoteContent] = useState('')
 
   const createNote = useCallback(async () => {
     const existingEmpty = availableNotes.find((n) => n.title === '')
@@ -61,7 +64,7 @@ export default function EditorContextProvider({
         return prev
       }
 
-      const existing = prev[index]
+      const existing = prev[index]!
       if (existing.title === title && existing.updatedAt === updatedAt) {
         return prev
       }
@@ -77,7 +80,7 @@ export default function EditorContextProvider({
       let insertIndex = 0
       while (
         insertIndex < next.length &&
-        next[insertIndex].updatedAt.localeCompare(updatedAt) >= 0
+        next[insertIndex]!.updatedAt.localeCompare(updatedAt) >= 0
       ) {
         insertIndex += 1
       }
@@ -88,8 +91,25 @@ export default function EditorContextProvider({
   }, [])
 
   const value = useMemo(
-    () => ({ availableNotes, saveStatus, setSaveStatus, createNote, deleteNote, updateNote }),
-    [availableNotes, saveStatus, setSaveStatus, createNote, deleteNote, updateNote],
+    () => ({
+      availableNotes,
+      saveStatus,
+      setSaveStatus,
+      createNote,
+      deleteNote,
+      updateNote,
+      activeNoteContent,
+      setActiveNoteContent,
+    }),
+    [
+      availableNotes,
+      saveStatus,
+      setSaveStatus,
+      createNote,
+      deleteNote,
+      updateNote,
+      activeNoteContent,
+    ],
   )
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>

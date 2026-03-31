@@ -1,5 +1,12 @@
+import { ChatSidebar } from '@/features/editor/ai/ChatSidebar'
 import type { Note } from '@/features/editor/EditorContext'
 import EditorContextProvider from '@/features/editor/EditorContext'
+import {
+  ResizableSidebarHandle,
+  ResizableSidebarInset,
+  ResizableSidebarLayout,
+  ResizableSidebarProvider,
+} from '@openlocus/ui/components/resizable-sidebar'
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { invoke } from '@tauri-apps/api/core'
 import { NotesSidebar } from '../../features/editor/sidebar/NotesSidebar'
@@ -24,11 +31,20 @@ function RouteComponent() {
   const { notes } = Route.useLoaderData()
 
   return (
-    <EditorContextProvider initialNotes={notes}>
-      <div className="flex">
-        <NotesSidebar />
-        <Outlet />
-      </div>
-    </EditorContextProvider>
+    <div className="fixed inset-0">
+      <EditorContextProvider initialNotes={notes}>
+        <ResizableSidebarProvider>
+          <ResizableSidebarLayout>
+            <NotesSidebar />
+            <ResizableSidebarHandle />
+            <ResizableSidebarInset>
+              <Outlet />
+            </ResizableSidebarInset>
+            <ResizableSidebarHandle />
+            <ChatSidebar />
+          </ResizableSidebarLayout>
+        </ResizableSidebarProvider>
+      </EditorContextProvider>
+    </div>
   )
 }

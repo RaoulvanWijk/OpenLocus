@@ -8,32 +8,30 @@ import {
   AlertDialogHeader,
   AlertDialogMedia,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@openlocus/ui/components/alert-dialog'
 import { Separator } from '@openlocus/ui/components/separator'
-import { Trash } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import { ReactNode } from 'react'
 
-export interface DeleteNoteDialogProps {
+export interface NewChatDialogProps {
+  children: ReactNode
   onConfirm: () => void
-  title: string
 }
 
-export function DeleteNoteDialog({
-  onConfirm,
-  title,
-  ...props
-}: DeleteNoteDialogProps & React.ComponentProps<typeof AlertDialog>) {
+export function NewChatDialog({ children, onConfirm }: NewChatDialogProps) {
   return (
-    <AlertDialog {...props}>
+    <AlertDialog>
+      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent className="gap-0 overflow-hidden rounded-2xl border-none p-0" size="sm">
         <AlertDialogHeader className="gap-2 px-10 pt-7 pb-5">
           <AlertDialogMedia className="size-11 rounded-full bg-red-100/60">
-            <Trash className="size-4.5 text-red-500" />
+            <AlertCircle className="size-4.5 text-red-500" />
           </AlertDialogMedia>
-          <AlertDialogTitle className="text-base font-medium">Delete this note?</AlertDialogTitle>
+          <AlertDialogTitle className="text-base font-medium">Start a new chat?</AlertDialogTitle>
           <AlertDialogDescription>
             <p className="text-sm text-gray-500/70">
-              <span className="font-medium text-gray-500">&quot;{title}&quot;</span> will be
-              permanently deleted and cannot be recovered
+              Your current conversation will be cleared. This action cannot be undone.
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -48,7 +46,7 @@ export function DeleteNoteDialog({
             size="xl"
             className="flex-1 rounded-none"
           >
-            Delete
+            Start new chat
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

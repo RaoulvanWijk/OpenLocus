@@ -6,6 +6,6 @@
       "@openlocus/ui/*": ["../../packages/ui/src/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "../../packages/ui/src/hooks/use-mobile.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
