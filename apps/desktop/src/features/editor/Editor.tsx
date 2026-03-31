@@ -4,6 +4,7 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useEffect, useRef } from 'react'
 import { AutoSaveExtension } from './auto-save/AutoSaveExtension'
+import { EditorToolbar } from './EditorToolbar'
 import { Find } from './find/Find'
 import { FindExtension } from './find/FindExtension'
 import { useEditorContext } from './hooks/use-editor-context'
@@ -50,6 +51,7 @@ export function Editor({ note }: { note: NoteData }) {
   return (
     <>
       <SaveStatus />
+      <EditorToolbar editor={editor} />
       <Find editor={editor} />
       <EditorContent className="min-w-0 flex-1" editor={editor} />
     </>

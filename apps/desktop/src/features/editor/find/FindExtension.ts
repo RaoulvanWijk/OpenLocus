@@ -4,6 +4,8 @@ import { createFindPlugin, findPluginKey } from './find-plugin'
 declare module '@tiptap/react' {
   interface Commands<ReturnType> {
     find: {
+      openFind: () => ReturnType
+      closeFind: () => ReturnType
       setSearchTerm: (term: string, options?: { caseSensitive?: boolean }) => ReturnType
       nextMatch: () => ReturnType
       prevMatch: () => ReturnType
@@ -21,6 +23,24 @@ export const FindExtension = Extension.create({
 
   addCommands() {
     return {
+      openFind:
+        () =>
+        ({ tr, dispatch }) => {
+          if (!dispatch) return true
+          tr.setMeta(findPluginKey, { open: true })
+          dispatch(tr)
+          return true
+        },
+
+      closeFind:
+        () =>
+        ({ tr, dispatch }) => {
+          if (!dispatch) return true
+          tr.setMeta(findPluginKey, { open: false, term: '', caseSensitive: false, activeIndex: 0 })
+          dispatch(tr)
+          return true
+        },
+
       setSearchTerm:
         (term, options = {}) =>
         ({ tr, dispatch, state }) => {

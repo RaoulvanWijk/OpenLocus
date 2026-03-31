@@ -1,212 +1,202 @@
-import { Button } from '@openlocus/ui/components/button'
 import { Separator } from '@openlocus/ui/components/separator'
-import type { Editor } from '@tiptap/react'
-import { Search } from 'lucide-react'
+import { Toggle } from '@openlocus/ui/components/toggle'
+import { useEditorState, type Editor } from '@tiptap/react'
+import { findPluginKey } from './find/find-plugin'
+import {
+  Bold,
+  Heading1,
+  Heading2,
+  Heading3,
+  Heading4,
+  Heading5,
+  Heading6,
+  Italic,
+  List,
+  ListOrdered,
+  Search,
+  Strikethrough,
+} from 'lucide-react'
 
 export function EditorToolbar({ editor }: { editor: Editor }) {
-  const handleFindClick = () => {
-    // Trigger Cmd+F / Ctrl+F to open Find
-    const event = new KeyboardEvent('keydown', {
-      key: 'f',
-      code: 'KeyF',
-      ctrlKey: true,
-      metaKey: true,
-      bubbles: true,
-    })
-    window.dispatchEvent(event)
-  }
+  const editorState = useEditorState({
+    editor,
+    selector: (ctx) => ({
+      isBold: ctx.editor.isActive('bold'),
+      isItalic: ctx.editor.isActive('italic'),
+      isStrike: ctx.editor.isActive('strike'),
+      isH1: ctx.editor.isActive('heading', { level: 1 }),
+      isH2: ctx.editor.isActive('heading', { level: 2 }),
+      isH3: ctx.editor.isActive('heading', { level: 3 }),
+      isH4: ctx.editor.isActive('heading', { level: 4 }),
+      isH5: ctx.editor.isActive('heading', { level: 5 }),
+      isH6: ctx.editor.isActive('heading', { level: 6 }),
+      isBulletList: ctx.editor.isActive('bulletList'),
+      isOrderedList: ctx.editor.isActive('orderedList'),
+      isFindOpen: findPluginKey.getState(ctx.editor.state)?.open ?? false,
+    }),
+  })
 
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b p-2">
-      <Button
-        size="xs"
-        data-active={editor.isActive('bold')}
+    <div className="no-scrollbar flex items-center gap-1 overflow-x-auto border-b px-8 py-4">
+      <Toggle
+        size="sm"
+        pressed={editorState.isBold}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleBold().run()
         }}
       >
-        <span className="font-bold">B</span>
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('italic')}
+        <Bold className="size-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editorState.isItalic}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleItalic().run()
         }}
       >
-        <span className="italic">I</span>
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('strike')}
+        <Italic className="size-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editorState.isStrike}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleStrike().run()
         }}
       >
-        <span className="line-through">S</span>
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('code')}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleCode().run()
-        }}
-      >
-        <span className="font-mono text-xs">{'<>'}</span>
-      </Button>
+        <Strikethrough className="size-4" />
+      </Toggle>
 
       <Separator orientation="vertical" className="mx-1 h-4" />
 
-      <Button
-        size="xs"
-        data-active={editor.isActive('heading', { level: 1 })}
+      <Toggle
+        size="sm"
+        pressed={editorState.isH1}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleHeading({ level: 1 }).run()
         }}
       >
-        H1
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('heading', { level: 2 })}
+        <Heading1 className="size-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editorState.isH2}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleHeading({ level: 2 }).run()
         }}
       >
-        H2
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('heading', { level: 3 })}
+        <Heading2 className="size-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editorState.isH3}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleHeading({ level: 3 }).run()
         }}
       >
-        H3
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('heading', { level: 4 })}
+        <Heading3 className="size-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editorState.isH4}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleHeading({ level: 4 }).run()
         }}
       >
-        H4
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('heading', { level: 5 })}
+        <Heading4 className="size-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editorState.isH5}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleHeading({ level: 5 }).run()
         }}
       >
-        H5
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('heading', { level: 6 })}
+        <Heading5 className="size-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editorState.isH6}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleHeading({ level: 6 }).run()
         }}
       >
-        H6
-      </Button>
+        <Heading6 className="size-4" />
+      </Toggle>
 
       <Separator orientation="vertical" className="mx-1 h-4" />
 
-      <Button
-        size="xs"
-        data-active={editor.isActive('bulletList')}
+      <Toggle
+        size="sm"
+        pressed={editorState.isBulletList}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleBulletList().run()
         }}
       >
-        • List
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('orderedList')}
+        <List className="size-4" />
+      </Toggle>
+      <Toggle
+        size="sm"
+        pressed={editorState.isOrderedList}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().toggleOrderedList().run()
         }}
       >
-        1. List
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('blockquote')}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleBlockquote().run()
-        }}
-      >
-        Quote
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('codeBlock')}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleCodeBlock().run()
-        }}
-      >
-        <span className="font-mono text-xs">{'{ }'}</span>
-      </Button>
-      <Button
-        size="xs"
-        data-active={editor.isActive('taskList')}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleTaskList().run()
-        }}
-      >
-        ☐ Task
-      </Button>
+        <ListOrdered className="size-4" />
+      </Toggle>
 
-      <Separator orientation="vertical" className="mx-1 h-4" />
+      {/* <Separator orientation="vertical" className="mx-1 h-4" />
 
       <Button
         size="xs"
+        variant="ghost"
         disabled={!editor.can().undo()}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().undo().run()
         }}
       >
-        Undo
+        <Undo className="size-4" />
       </Button>
       <Button
         size="xs"
+        variant="ghost"
         disabled={!editor.can().redo()}
         onMouseDown={(e) => {
           e.preventDefault()
           editor.chain().focus().redo().run()
         }}
       >
-        Redo
-      </Button>
+        <Redo className="size-4" />
+      </Button> */}
 
       <Separator orientation="vertical" className="mx-1 h-4" />
 
-      <Button
-        size="xs"
-        onClick={handleFindClick}
+      <Toggle
+        size="sm"
+        pressed={editorState.isFindOpen}
+        onMouseDown={(e) => {
+          e.preventDefault()
+          if (editorState.isFindOpen) {
+            editor.chain().closeFind().focus().run()
+          } else {
+            editor.commands.openFind()
+          }
+        }}
         title="Find (Ctrl+F / Cmd+F)"
       >
-        <Search className="h-4 w-4" />
-      </Button>
+        <Search className="size-4" />
+      </Toggle>
     </div>
   )
 }

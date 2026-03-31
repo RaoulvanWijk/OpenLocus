@@ -2,6 +2,7 @@ import { Plugin, PluginKey, type EditorState } from '@tiptap/pm/state'
 import type { EditorView } from '@tiptap/pm/view'
 
 export interface FindState {
+  open: boolean
   term: string
   caseSensitive: boolean
   activeIndex: number
@@ -93,18 +94,19 @@ export function createFindPlugin(): Plugin<FindState> {
 
     state: {
       init(): FindState {
-        return { term: '', caseSensitive: false, activeIndex: 0, matches: [], scrollTo: false }
+        return { open: false, term: '', caseSensitive: false, activeIndex: 0, matches: [], scrollTo: false }
       },
 
       apply(tr, prev, _oldState, newState): FindState {
         const meta = tr.getMeta(findPluginKey) as Partial<FindState> | undefined
 
         if (meta) {
+          const open = meta.open ?? prev.open
           const term = meta.term ?? prev.term
           const caseSensitive = meta.caseSensitive ?? prev.caseSensitive
           const matches = buildMatches(newState, term, caseSensitive)
           const activeIndex = Math.min(meta.activeIndex ?? 0, Math.max(0, matches.length - 1))
-          return { term, caseSensitive, activeIndex, matches, scrollTo: meta.scrollTo ?? false }
+          return { open, term, caseSensitive, activeIndex, matches, scrollTo: meta.scrollTo ?? false }
         }
 
         if (tr.docChanged) {
