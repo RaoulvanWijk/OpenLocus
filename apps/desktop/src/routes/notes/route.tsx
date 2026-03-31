@@ -31,18 +31,20 @@ function RouteComponent() {
   const { notes } = Route.useLoaderData()
 
   return (
-    <EditorContextProvider initialNotes={notes}>
-      <ResizableSidebarProvider>
-        <ResizableSidebarLayout className="min-h-svh">
-          <NotesSidebar />
-          <ResizableSidebarHandle />
-          <ResizableSidebarInset>
-            <Outlet />
-          </ResizableSidebarInset>
-          <ResizableSidebarHandle />
-          <ChatSidebar />
-        </ResizableSidebarLayout>
-      </ResizableSidebarProvider>
-    </EditorContextProvider>
+    <div className="fixed inset-0">
+      <EditorContextProvider initialNotes={notes}>
+        <ResizableSidebarProvider>
+          <ResizableSidebarLayout>
+            <NotesSidebar />
+            <ResizableSidebarHandle />
+            <ResizableSidebarInset>
+              <Outlet />
+            </ResizableSidebarInset>
+            <ResizableSidebarHandle />
+            <ChatSidebar />
+          </ResizableSidebarLayout>
+        </ResizableSidebarProvider>
+      </EditorContextProvider>
+    </div>
   )
 }

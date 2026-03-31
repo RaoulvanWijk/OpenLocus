@@ -47,6 +47,10 @@ type ResizableSidebarContextProps = {
 
 const ResizableSidebarContext = React.createContext<ResizableSidebarContextProps | null>(null)
 
+const ResizableSidebarInstanceContext = React.createContext<{ toggleSidebar: () => void } | null>(
+  null,
+)
+
 function useResizableSidebar() {
   const context = React.useContext(ResizableSidebarContext)
   if (!context) {
@@ -138,7 +142,7 @@ function ResizableSidebarProvider({
         <div
           data-slot="sidebar-wrapper"
           style={style}
-          className={cn('group/sidebar-wrapper flex min-h-svh w-full', className)}
+          className={cn('group/sidebar-wrapper flex h-full w-full', className)}
           {...props}
         >
           {children}
@@ -199,6 +203,16 @@ function ResizableSidebar({
     }
   }, [setOpen])
 
+  const toggleSidebar = React.useCallback(() => {
+    const panel = localPanelRef.current
+    if (!panel) return
+    if (panel.isCollapsed()) {
+      panel.expand()
+    } else {
+      panel.collapse()
+    }
+  }, [])
+
   const state = localState
 
   const resolvedCollapsedSize = collapsedSize ?? (collapsible === 'icon' ? '3rem' : 0)
@@ -242,30 +256,32 @@ function ResizableSidebar({
   }
 
   return (
-    <ResizablePrimitive.Panel
-      panelRef={localPanelRef}
-      data-slot="sidebar"
-      data-side={side}
-      id={id}
-      defaultSize={defaultSize}
-      minSize={minSize}
-      maxSize={maxSize}
-      collapsible
-      collapsedSize={resolvedCollapsedSize}
-      onResize={handleResize}
-    >
-      <div
-        className={cn(
-          'group bg-sidebar text-sidebar-foreground flex h-full w-full flex-col overflow-hidden transition-[flex-basis] duration-200 ease-linear',
-          className,
-        )}
-        data-slot="sidebar-inner"
-        data-state={state}
-        data-collapsible={state === 'collapsed' ? collapsible : ''}
+    <ResizableSidebarInstanceContext.Provider value={{ toggleSidebar }}>
+      <ResizablePrimitive.Panel
+        panelRef={localPanelRef}
+        data-slot="sidebar"
+        data-side={side}
+        id={id}
+        defaultSize={defaultSize}
+        minSize={minSize}
+        maxSize={maxSize}
+        collapsible
+        collapsedSize={resolvedCollapsedSize}
+        onResize={handleResize}
       >
-        {children}
-      </div>
-    </ResizablePrimitive.Panel>
+        <div
+          className={cn(
+            'group bg-sidebar text-sidebar-foreground flex h-full w-full flex-col overflow-hidden transition-[flex-basis] duration-200 ease-linear',
+            className,
+          )}
+          data-slot="sidebar-inner"
+          data-state={state}
+          data-collapsible={state === 'collapsed' ? collapsible : ''}
+        >
+          {children}
+        </div>
+      </ResizablePrimitive.Panel>
+    </ResizableSidebarInstanceContext.Provider>
   )
 }
 
@@ -330,25 +346,30 @@ function ResizableSidebarHandle({
 
 function ResizableSidebarTrigger({
   className,
+  children,
   onClick,
+  variant = 'ghost',
+  size = 'icon',
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useResizableSidebar()
+  const instance = React.useContext(ResizableSidebarInstanceContext)
+  const shared = useResizableSidebar()
+  const toggleSidebar = instance?.toggleSidebar ?? shared.toggleSidebar
 
   return (
     <Button
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
-      variant="ghost"
-      size="icon"
-      className={cn('size-7', className)}
+      variant={variant}
+      size={size}
+      className={cn('', className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      {children || <PanelLeftIcon />}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )
@@ -368,7 +389,7 @@ function ResizableSidebarInset({
       minSize={minSize}
       className={cn('bg-background relative flex w-full flex-1 flex-col', className)}
     >
-      <div className="flex h-full w-full flex-col" {...props}>
+      <div className="flex h-full min-h-0 w-full flex-col" {...props}>
         {children}
       </div>
     </ResizablePrimitive.Panel>

@@ -33,7 +33,7 @@ export function Editor({ note }: { note: NoteData }) {
     editorProps: {
       attributes: {
         spellcheck: 'true',
-        class: 'prose prose-sm sm:prose-base focus:outline-none max-w-full min-h-full w-full p-4',
+        class: 'prose prose-sm sm:prose-base focus:outline-none max-w-full w-full px-8 py-10',
       },
     },
   })

@@ -7,9 +7,10 @@ import {
   ResizableSidebarMenuButton,
   ResizableSidebarMenuItem,
   ResizableSidebarSeparator,
+  ResizableSidebarTrigger,
 } from '@openlocus/ui/components/resizable-sidebar'
 import { useNavigate } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
+import { ChevronLeft, Plus } from 'lucide-react'
 import { useEditorContext } from '../hooks/use-editor-context'
 import NoteItem from './NoteItem'
 
@@ -31,7 +32,7 @@ export function NotesSidebar() {
       collapsedSize="3rem"
       className="relative flex h-screen flex-col transition-[gap] duration-75 data-[collapsible=icon]:gap-1"
     >
-      <ResizableSidebarHeader className="px-3 pt-4 pb-3 group-data-[collapsible=icon]:px-2">
+      <ResizableSidebarHeader className="flex-row px-3 pt-4 pb-3 group-data-[collapsible=icon]:flex-col-reverse group-data-[collapsible=icon]:px-2">
         <ResizableSidebarMenu>
           <ResizableSidebarMenuItem>
             <ResizableSidebarMenuButton
@@ -47,11 +48,14 @@ export function NotesSidebar() {
             </ResizableSidebarMenuButton>
           </ResizableSidebarMenuItem>
         </ResizableSidebarMenu>
+        <ResizableSidebarTrigger size="icon-lg" className="group-data-[collapsible=icon]:size-8">
+          <ChevronLeft className="group-data-[collapsible=icon]:rotate-180" />
+        </ResizableSidebarTrigger>
       </ResizableSidebarHeader>
       <ResizableSidebarSeparator className="mx-4 group-data-[collapsible=icon]:mx-2" />
       <ResizableSidebarContent>
-        <ResizableSidebarGroup className="px-2.25 pt-2 group-data-[collapsible=icon]:px-1">
-          <ResizableSidebarMenu className="gap-0.5 transition-[gap] group-data-[collapsible=icon]:gap-1">
+        <ResizableSidebarGroup className="px-2.25 pt-2 group-data-[collapsible=icon]:px-2">
+          <ResizableSidebarMenu className="gap-0.5 transition-[gap] group-data-[collapsible=icon]:gap-px">
             {availableNotes.map((note) => (
               <ResizableSidebarMenuItem key={note.id}>
                 <NoteItem note={note} />

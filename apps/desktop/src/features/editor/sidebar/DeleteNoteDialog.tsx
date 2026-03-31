@@ -9,6 +9,7 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from '@openlocus/ui/components/alert-dialog'
+import { Separator } from '@openlocus/ui/components/separator'
 import { Trash } from 'lucide-react'
 
 export interface DeleteNoteDialogProps {
@@ -23,30 +24,29 @@ export function DeleteNoteDialog({
 }: DeleteNoteDialogProps & React.ComponentProps<typeof AlertDialog>) {
   return (
     <AlertDialog {...props}>
-      <AlertDialogContent className="gap-0 rounded-2xl border-0 p-0" size="sm">
-        <AlertDialogHeader className="px-10 pt-7 pb-5">
-          <AlertDialogMedia className="rounded-full bg-red-100/60 p-3">
-            <Trash className="h-8 w-8 text-red-500" />
+      <AlertDialogContent className="gap-0 overflow-hidden rounded-2xl border-none p-0" size="sm">
+        <AlertDialogHeader className="gap-2 px-10 pt-7 pb-5">
+          <AlertDialogMedia className="size-11 rounded-full bg-red-100/60">
+            <Trash className="size-4.5 text-red-500" />
           </AlertDialogMedia>
-          <AlertDialogTitle>Delete this note?</AlertDialogTitle>
+          <AlertDialogTitle className="text-base font-medium">Delete this note?</AlertDialogTitle>
           <AlertDialogDescription>
-            <p className="text-gray-500/80">
-              <span className="font-bold text-gray-500">&quot;{title}&quot;</span> will be
+            <p className="text-sm text-gray-500/70">
+              <span className="font-medium text-gray-500">&quot;{title}&quot;</span> will be
               permanently deleted and cannot be recovered
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="gap-0 border-t">
-          <AlertDialogCancel
-            variant="default"
-            className="cursor-pointer rounded-none rounded-bl-2xl bg-white py-3 font-medium text-gray-500! hover:bg-gray-200!"
-          >
+        <AlertDialogFooter className="border-border-light flex flex-row flex-nowrap gap-0 border-t">
+          <AlertDialogCancel variant="ghost" size="xl" className="flex-1 rounded-none">
             Cancel
           </AlertDialogCancel>
+          <Separator orientation="vertical" className="bg-border-light" />
           <AlertDialogAction
             onClick={onConfirm}
-            variant="default"
-            className="cursor-pointer rounded-none rounded-br-2xl bg-white py-3 font-medium text-red-500! hover:bg-red-100/80!"
+            variant="destructiveHover"
+            size="xl"
+            className="flex-1 rounded-none"
           >
             Delete
           </AlertDialogAction>

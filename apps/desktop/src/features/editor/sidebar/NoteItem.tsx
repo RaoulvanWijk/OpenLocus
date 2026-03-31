@@ -49,13 +49,13 @@ export default function NoteItem({ note }: NoteItemProps) {
               'group/note-item relative z-10 items-start justify-between gap-0 rounded-lg border border-transparent bg-transparent p-3 transition-colors duration-200 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:p-0!',
               'hover:bg-sidebar-accent',
               'data-[state=selected]:border-border data-[state=selected]:bg-white data-[state=selected]:text-black data-[state=selected]:shadow-sm',
-              'before:absolute before:top-0 before:bottom-0 before:left-0 before:my-auto before:h-8/12 before:w-0.5 before:rounded-r-full before:bg-[#1F2937] before:opacity-0 before:content-["\\"] data-[state=selected]:before:opacity-100',
+              'before:absolute before:top-0 before:bottom-0 before:left-0 before:my-auto before:h-8/12 before:w-0.5 before:rounded-r-full before:bg-[#1F2937] before:opacity-0 group-data-[collapsible=icon]:before:h-1/2 data-[state=selected]:before:opacity-100',
             )}
           >
             <span className="min-w-0 flex-1 space-y-1">
               <p
                 className={cn(
-                  'truncate text-sm leading-5 whitespace-nowrap group-data-[collapsible=icon]:pl-1 group-data-[collapsible=icon]:text-clip',
+                  'truncate text-sm whitespace-nowrap group-data-[collapsible=icon]:pl-1 group-data-[collapsible=icon]:text-clip',
                   {
                     'text-gray-400': note.title === '',
                   },
@@ -72,7 +72,7 @@ export default function NoteItem({ note }: NoteItemProps) {
                 <button
                   className={cn(
                     'focus:ring-primary hidden cursor-pointer items-center justify-center rounded p-1 hover:bg-gray-200 focus:ring-2 focus:outline-none',
-                    'group-data-[state=selected]/note-item:hover:bg-sidebar-accent group-hover/note-item:flex group-data-[state=selected]/note-item:flex',
+                    'group-data-[state=selected]/note-item:hover:bg-sidebar-accent group-hover/note-item:flex group-data-[collapsible=icon]:hidden! group-data-[state=selected]/note-item:flex',
                   )}
                   tabIndex={0}
                   aria-label="Meer opties"
@@ -89,7 +89,7 @@ export default function NoteItem({ note }: NoteItemProps) {
                 >
                   <DropdownMenuItem
                     onSelect={() => setDeleteOpen(true)}
-                    className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
+                    className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600! focus:bg-red-100 focus:outline-none"
                   >
                     <Trash className="size-4 text-red-600" />
                     Delete note
@@ -103,7 +103,7 @@ export default function NoteItem({ note }: NoteItemProps) {
           <ContextMenuContent className="animate-fade-in z-50 min-w-40 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
             <ContextMenuItem
               onSelect={() => setDeleteOpen(true)}
-              className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 focus:bg-red-100 focus:outline-none"
+              className="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600! focus:bg-red-100 focus:outline-none"
             >
               <Trash className="size-4 text-red-600" />
               Delete note
