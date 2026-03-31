@@ -151,6 +151,16 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       >
         <span className="font-mono text-xs">{'{ }'}</span>
       </Button>
+      <Button
+        size="xs"
+        data-active={editor.isActive('taskList')}
+        onMouseDown={(e) => {
+          e.preventDefault()
+          editor.chain().focus().toggleTaskList().run()
+        }}
+      >
+        ☐ Task
+      </Button>
 
       <Separator orientation="vertical" className="mx-1 h-4" />
 
