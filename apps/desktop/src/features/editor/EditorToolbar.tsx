@@ -1,7 +1,6 @@
 import { Separator } from '@openlocus/ui/components/separator'
 import { Toggle } from '@openlocus/ui/components/toggle'
 import { useEditorState, type Editor } from '@tiptap/react'
-import { findPluginKey } from './find/find-plugin'
 import {
   Bold,
   Heading1,
@@ -16,6 +15,7 @@ import {
   Search,
   Strikethrough,
 } from 'lucide-react'
+import { findPluginKey } from './find/find-plugin'
 
 export function EditorToolbar({ editor }: { editor: Editor }) {
   const editorState = useEditorState({
@@ -41,30 +41,27 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       <Toggle
         size="sm"
         pressed={editorState.isBold}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleBold().run()
-        }}
+        aria-label="Bold"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleBold().run()}
       >
         <Bold className="size-4" />
       </Toggle>
       <Toggle
         size="sm"
         pressed={editorState.isItalic}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleItalic().run()
-        }}
+        aria-label="Italic"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleItalic().run()}
       >
         <Italic className="size-4" />
       </Toggle>
       <Toggle
         size="sm"
         pressed={editorState.isStrike}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleStrike().run()
-        }}
+        aria-label="Strikethrough"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleStrike().run()}
       >
         <Strikethrough className="size-4" />
       </Toggle>
@@ -74,60 +71,54 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       <Toggle
         size="sm"
         pressed={editorState.isH1}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleHeading({ level: 1 }).run()
-        }}
+        aria-label="Heading 1"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
       >
         <Heading1 className="size-4" />
       </Toggle>
       <Toggle
         size="sm"
         pressed={editorState.isH2}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleHeading({ level: 2 }).run()
-        }}
+        aria-label="Heading 2"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
       >
         <Heading2 className="size-4" />
       </Toggle>
       <Toggle
         size="sm"
         pressed={editorState.isH3}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleHeading({ level: 3 }).run()
-        }}
+        aria-label="Heading 3"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
       >
         <Heading3 className="size-4" />
       </Toggle>
       <Toggle
         size="sm"
         pressed={editorState.isH4}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleHeading({ level: 4 }).run()
-        }}
+        aria-label="Heading 4"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
       >
         <Heading4 className="size-4" />
       </Toggle>
       <Toggle
         size="sm"
         pressed={editorState.isH5}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleHeading({ level: 5 }).run()
-        }}
+        aria-label="Heading 5"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
       >
         <Heading5 className="size-4" />
       </Toggle>
       <Toggle
         size="sm"
         pressed={editorState.isH6}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleHeading({ level: 6 }).run()
-        }}
+        aria-label="Heading 6"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}
       >
         <Heading6 className="size-4" />
       </Toggle>
@@ -137,20 +128,18 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       <Toggle
         size="sm"
         pressed={editorState.isBulletList}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleBulletList().run()
-        }}
+        aria-label="Bullet list"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
       >
         <List className="size-4" />
       </Toggle>
       <Toggle
         size="sm"
         pressed={editorState.isOrderedList}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          editor.chain().focus().toggleOrderedList().run()
-        }}
+        aria-label="Ordered list"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
       >
         <ListOrdered className="size-4" />
       </Toggle>
@@ -185,15 +174,16 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       <Toggle
         size="sm"
         pressed={editorState.isFindOpen}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          if (editorState.isFindOpen) {
-            editor.chain().closeFind().focus().run()
-          } else {
+        aria-label="Find"
+        title="Find (Ctrl+F / Cmd+F)"
+        onPointerDown={(e) => e.preventDefault()}
+        onPressedChange={(pressed) => {
+          if (pressed) {
             editor.commands.openFind()
+          } else {
+            editor.chain().closeFind().focus().run()
           }
         }}
-        title="Find (Ctrl+F / Cmd+F)"
       >
         <Search className="size-4" />
       </Toggle>

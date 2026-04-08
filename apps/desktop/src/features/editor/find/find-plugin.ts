@@ -105,7 +105,7 @@ export function createFindPlugin(): Plugin<FindState> {
           const term = meta.term ?? prev.term
           const caseSensitive = meta.caseSensitive ?? prev.caseSensitive
           const matches = buildMatches(newState, term, caseSensitive)
-          const activeIndex = Math.min(meta.activeIndex ?? 0, Math.max(0, matches.length - 1))
+          const activeIndex = Math.min(meta.activeIndex ?? prev.activeIndex, Math.max(0, matches.length - 1))
           return { open, term, caseSensitive, activeIndex, matches, scrollTo: meta.scrollTo ?? false }
         }
 
