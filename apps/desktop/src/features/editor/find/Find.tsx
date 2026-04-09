@@ -1,22 +1,22 @@
-import { type Editor } from '@tiptap/react'
-import { useEffect, useState } from 'react'
+import { useEditorState, type Editor } from '@tiptap/react'
+import { useEffect } from 'react'
+import { findPluginKey } from './find-plugin'
 import { FindBar } from './FindBar'
 
-interface FindProps {
-  editor: Editor
-}
-
-export function Find({ editor }: FindProps) {
-  const [open, setOpen] = useState(false)
+export function Find({ editor }: { editor: Editor }) {
+  const open = useEditorState({
+    editor,
+    selector: (ctx) => findPluginKey.getState(ctx.editor.state)?.open ?? false,
+  })
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault()
-        setOpen(true)
+        editor.commands.openFind()
       }
       if (e.key === 'Escape' && open) {
-        setOpen(false)
+        editor.commands.closeFind()
         editor.commands.focus()
       }
     }
@@ -30,7 +30,7 @@ export function Find({ editor }: FindProps) {
     <FindBar
       editor={editor}
       onClose={() => {
-        setOpen(false)
+        editor.commands.closeFind()
         editor.commands.focus()
       }}
     />
