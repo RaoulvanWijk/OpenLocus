@@ -26,7 +26,7 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
         <div className="mt-4 space-y-2 text-xs">
           <p className="text-muted-foreground text-center">Try one of these prompts:</p>
           {EXAMPLE_PROMPTS.map((prompt) => (
-            <div key={prompt} className="bg-muted text-muted-foreground rounded-md px-3 py-2">
+            <div key={prompt} className="bg-muted rounded-md px-3 py-2 text-white">
               {prompt}
             </div>
           ))}
@@ -41,8 +41,8 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
           <div
             className={
               message.role === 'user'
-                ? 'bg-primary text-primary-foreground max-w-[85%] rounded-lg px-3 py-2 text-xs'
-                : 'bg-muted max-w-[85%] rounded-lg px-3 py-2 text-xs **:text-xs'
+                ? 'bg-primary max-w-[85%] rounded-lg px-3 py-2 text-xs text-white'
+                : 'bg-muted/25 max-w-[85%] rounded-lg px-3 py-2 text-xs **:text-xs'
             }
           >
             {message.role === 'assistant' ? (
