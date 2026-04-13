@@ -3,12 +3,10 @@ import type { UseModelSetupResult } from './hooks/use-model-setup'
 
 type ModelSetupProps = {
   setup: UseModelSetupResult
+  modelName: string
 }
 
-const MODEL_NAME = 'Ministral 3B Instruct (Q4_K_M)'
-const MODEL_SIZE_LABEL = '~2 GB'
-
-export function ModelSetup({ setup }: ModelSetupProps) {
+export function ModelSetup({ setup, modelName }: ModelSetupProps) {
   const { modelStatus, setupLoading, setupError, downloadProgress, handleDownload, handleLoad } =
     setup
 
@@ -20,8 +18,8 @@ export function ModelSetup({ setup }: ModelSetupProps) {
   return (
     <div className="flex flex-col gap-3 p-4">
       <p className="text-muted-foreground text-xs leading-relaxed">
-        Open Locus AI uses <strong>{MODEL_NAME}</strong> and runs fully on-device, so your note
-        content stays local. Download size: <strong>{MODEL_SIZE_LABEL}</strong>.
+        Open Locus AI runs fully on-device, so your note content stays local. Selected model:
+        <strong> {modelName}</strong>.
       </p>
 
       {setupError && <p className="text-destructive text-xs">{setupError}</p>}
@@ -32,7 +30,7 @@ export function ModelSetup({ setup }: ModelSetupProps) {
             ? progressPercent !== null
               ? `Downloading… ${progressPercent}%`
               : 'Downloading…'
-            : `Download model (${MODEL_SIZE_LABEL})`}
+            : 'Download model'}
         </Button>
       )}
 

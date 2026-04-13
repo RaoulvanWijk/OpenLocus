@@ -10,6 +10,8 @@ import {
 import { RadioGroup, RadioGroupItem } from '@openlocus/ui/components/radio-group'
 import { cn } from '@openlocus/ui/lib/utils'
 import { createFileRoute } from '@tanstack/react-router'
+import { useTypedAppFormContext } from './-components/form'
+import { onboardingFormOpts } from './route'
 
 export const Route = createFileRoute('/onboarding/model-choice')({
   component: RouteComponent,
@@ -59,7 +61,15 @@ const MODELS = [
 
 type ModelId = (typeof MODELS)[number]['id']
 
+function toErrorMessage(error: unknown): string | null {
+  if (typeof error === 'string') return error
+  if (error instanceof Error) return error.message
+  return null
+}
+
 function RouteComponent() {
+  const form = useTypedAppFormContext(onboardingFormOpts)
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 p-8">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -69,62 +79,78 @@ function RouteComponent() {
         </p>
       </div>
 
-      <RadioGroup
-        defaultValue={'ministral-3b' satisfies ModelId}
-        className="flex flex-wrap justify-center"
-      >
-        {MODELS.map((model) => (
-          <FieldLabel
-            htmlFor={model.id}
-            className={cn('w-fit! shadow-sm', {
-              'border-primary bg-primary-foreground': model.recommended,
-            })}
-            key={model.id}
+      <form.Field name="model">
+        {(field) => (
+          <RadioGroup
+            value={field.state.value}
+            onValueChange={(value) => field.handleChange(value as ModelId)}
+            className="flex flex-wrap justify-center"
           >
-            <Field orientation="horizontal">
-              <FieldContent>
-                {model.recommended && (
-                  <Badge className="group-has-data-[state=checked]/field-label:text-primary transition-none group-has-data-[state=checked]/field-label:bg-white">
-                    Recommended
-                  </Badge>
-                )}
-                <FieldTitle>{model.name}</FieldTitle>
-                <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted">
-                  {model.tagline}
-                </FieldDescription>
-                <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted text-xs">
-                  {model.specs}
-                </FieldDescription>
-                <ul className="mt-2 flex flex-col gap-1">
-                  {model.capabilities.map((cap) => (
-                    <li
-                      key={cap}
-                      className="group-has-data-[state=checked]/field-label:text-muted text-muted-foreground flex items-start gap-2 text-xs"
-                    >
-                      <span className="mt-px">-</span>
-                      <span>{cap}</span>
-                    </li>
-                  ))}
-                </ul>
-              </FieldContent>
-              <RadioGroupItem
-                value={model.id}
-                id={model.id}
-                className={cn(
-                  'group-has-data-[state=checked]/field-label:[&_svg]:fill-background',
-                  {
-                    'border-background': model.recommended,
-                  },
-                )}
-              />
-            </Field>
-          </FieldLabel>
-        ))}
-      </RadioGroup>
+            {MODELS.map((model) => (
+              <FieldLabel
+                htmlFor={model.id}
+                className={cn('w-fit! shadow-sm', {
+                  'border-primary bg-primary-foreground': model.recommended,
+                })}
+                key={model.id}
+              >
+                <Field orientation="horizontal">
+                  <FieldContent>
+                    {model.recommended && (
+                      <Badge className="group-has-data-[state=checked]/field-label:text-primary transition-none group-has-data-[state=checked]/field-label:bg-white">
+                        Recommended
+                      </Badge>
+                    )}
+                    <FieldTitle className="text-lg">{model.name}</FieldTitle>
+                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted">
+                      {model.tagline}
+                    </FieldDescription>
+                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted text-xs">
+                      {model.specs}
+                    </FieldDescription>
+                    <ul className="mt-2 flex flex-col gap-1">
+                      {model.capabilities.map((cap) => (
+                        <li
+                          key={cap}
+                          className="group-has-data-[state=checked]/field-label:text-muted text-muted-foreground flex items-start gap-2 text-xs"
+                        >
+                          <span className="mt-px">-</span>
+                          <span>{cap}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </FieldContent>
+                  <RadioGroupItem
+                    value={model.id}
+                    id={model.id}
+                    className={cn(
+                      'group-has-data-[state=checked]/field-label:[&_svg]:fill-background',
+                      {
+                        'border-background': model.recommended,
+                      },
+                    )}
+                  />
+                </Field>
+              </FieldLabel>
+            ))}
+          </RadioGroup>
+        )}
+      </form.Field>
 
-      <Button type="submit" form="onboarding-form" size="lg">
-        Continue
-      </Button>
+      <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+        {(onSubmitError) => {
+          const message = toErrorMessage(onSubmitError)
+          return message ? <p className="text-destructive text-sm">{message}</p> : null
+        }}
+      </form.Subscribe>
+
+      <form.Subscribe selector={(state) => state.isSubmitting}>
+        {(submitting) => (
+          <Button type="submit" form="onboarding-form" size="lg" disabled={submitting}>
+            {submitting ? 'Continuing...' : 'Continue'}
+          </Button>
+        )}
+      </form.Subscribe>
     </div>
   )
 }
