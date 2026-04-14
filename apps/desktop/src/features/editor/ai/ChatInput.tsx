@@ -1,19 +1,31 @@
 import { Badge } from '@openlocus/ui/components/badge'
 import { Button } from '@openlocus/ui/components/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@openlocus/ui/components/select'
+import { Textarea } from '@openlocus/ui/components/textarea'
 import { useParams } from '@tanstack/react-router'
 import { File, SendIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useEditorContext } from '../hooks/use-editor-context'
-import type { UseChatResult } from './hooks/use-chat'
+import { useAiStore } from './stores/ai-store'
 
-type ChatInputProps = {
-  chat: Pick<UseChatResult, 'input' | 'onInputChange' | 'sendMessage' | 'isStreaming' | 'maxLength'>
-}
+export function ChatInput() {
+  const { activeNoteContent, availableNotes } = useEditorContext()
+  const input = useAiStore((s) => s.input)
+  const onInputChange = useAiStore((s) => s.onInputChange)
+  const sendMessage = useAiStore((s) => s.sendMessage)
+  const isStreaming = useAiStore((s) => s.isStreaming)
+  const maxLength = useAiStore((s) => s.maxLength)
+  const models = useAiStore((s) => s.models)
+  const activeModelId = useAiStore((s) => s.activeModelId)
+  const setActiveModelId = useAiStore((s) => s.setActiveModelId)
+  const downloadProgressByModel = useAiStore((s) => s.downloadProgressByModel)
 
-export function ChatInput({ chat }: ChatInputProps) {
-  const { input, onInputChange, sendMessage, isStreaming, maxLength } = chat
-
-  const { availableNotes } = useEditorContext()
   const { id: currentNoteId } = useParams({ strict: false })
   const currentNote = useMemo(
     () => availableNotes.find((note) => note.id === currentNoteId),
@@ -22,7 +34,7 @@ export function ChatInput({ chat }: ChatInputProps) {
   const currentNoteTitle = currentNote?.title
 
   const handleSend = () => {
-    sendMessage(input)
+    void sendMessage(activeNoteContent)
   }
 
   const exceedsMaxLength = input.length > maxLength
@@ -36,7 +48,7 @@ export function ChatInput({ chat }: ChatInputProps) {
           {currentNoteTitle}
         </Badge>
       )}
-      <textarea
+      <Textarea
         className="bg-background placeholder:text-muted-foreground focus:ring-ring field-sizing-content max-h-32 min-h-7 flex-1 resize-none rounded-md border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none"
         placeholder="Ask about your note…"
         value={input}
@@ -58,10 +70,47 @@ export function ChatInput({ chat }: ChatInputProps) {
         >
           {input.length} / {maxLength}
         </span>
+        <div className="flex gap-2">
+          <Select value={activeModelId} onValueChange={setActiveModelId}>
+            <SelectTrigger id="model-picker" size="sm" className="shadow-none">
+              <SelectValue placeholder="Select a model" />
+            </SelectTrigger>
+            <SelectContent>
+              {models.length === 0 ? (
+                <div className="text-muted-foreground px-2 py-1.5 text-xs">Loading models...</div>
+              ) : (
+                models.map((model) => {
+                  const progress = downloadProgressByModel[model.id]
+                  const progressPercent =
+                    progress && progress.total > 0
+                      ? Math.round((progress.loaded / progress.total) * 100)
+                      : null
 
-        <Button size="icon-sm" onClick={handleSend} disabled={!canSend} className="shrink-0">
-          <SendIcon />
-        </Button>
+                  const label = progress
+                    ? `${model.name}${progressPercent !== null && progressPercent < 100 ? ` (${progressPercent}%)` : ''}`
+                    : model.downloaded
+                      ? model.name
+                      : `${model.name} (not downloaded)`
+
+                  return (
+                    <SelectItem
+                      key={model.id}
+                      value={model.id}
+                      disabled={!model.downloaded}
+                      className="text-xs"
+                    >
+                      {label}
+                    </SelectItem>
+                  )
+                })
+              )}
+            </SelectContent>
+          </Select>
+
+          <Button size="icon-sm" onClick={handleSend} disabled={!canSend} className="shrink-0">
+            <SendIcon />
+          </Button>
+        </div>
       </div>
     </div>
   )

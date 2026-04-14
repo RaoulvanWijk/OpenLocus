@@ -541,12 +541,39 @@ pub fn chat(
     app: AppHandle,
     state: tauri::State<AppState>,
 ) -> Result<(), String> {
+    // Check if model is loaded; if not, try to auto-load the currently active model
+    {
+        let guard = state
+            .handle
+            .lock()
+            .map_err(|_| "Failed to lock model state".to_string())?;
+        if guard.is_some() {
+            drop(guard);
+        } else {
+            // Model not loaded, try to auto-load the active model
+            drop(guard);
+            let loaded_model_id = state
+                .loaded_model_id
+                .lock()
+                .map_err(|_| "Failed to lock model state".to_string())?
+                .clone();
+
+            if let Some(model_id) = loaded_model_id {
+                // Try to load the model that was previously loaded
+                load_model(model_id.clone(), app.clone(), state.clone())?;
+            } else {
+                // No previously loaded model, try the default
+                load_model("ministral-3b".to_string(), app.clone(), state.clone())?;
+            }
+        }
+    }
+
     let guard = state
         .handle
         .lock()
         .map_err(|_| "Failed to lock model state".to_string())?;
     let handle = guard.as_ref().ok_or(
-        "Model is not loaded. It may have been unloaded due to inactivity - please wait a moment.",
+        "Model failed to load. Please ensure it has been downloaded.",
     )?;
 
     let prompt = build_prompt(&messages, &note_content);
