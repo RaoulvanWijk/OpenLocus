@@ -29,12 +29,12 @@ export function Editor({ note }: { note: NoteData }) {
       }),
     ],
     content: note.content || '<h1></h1>',
-
     autofocus: true,
     editorProps: {
       attributes: {
         spellcheck: 'true',
-        class: 'prose prose-sm sm:prose-base focus:outline-none max-w-full w-full px-8 py-10',
+        class:
+          'prose prose-sm sm:prose-base prose-inherit prose-headings:my-0 align-top prose-p:my-0 prose-ol:my-0 prose-ul:my-0 prose-li:my-0 prose-blockquote:my-0 prose-pre:my-0 prose-figure:my-0 prose-figcaption:my-0 prose-hr:my-0 prose-table:my-0 prose-img:my-0 prose-picture:my-0 prose-video:my-0 focus:outline-none max-w-full w-full px-8 py-10 text-foreground',
       },
     },
   })

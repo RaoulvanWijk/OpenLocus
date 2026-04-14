@@ -8,7 +8,7 @@ export const Route = createFileRoute('/')({
     })
 
     throw redirect({
-      to: completed === 'true' ? '/notes' : '/onboarding/model-choice',
+      to: completed === 'false' ? '/notes' : '/onboarding/model-choice',
     })
   },
 })

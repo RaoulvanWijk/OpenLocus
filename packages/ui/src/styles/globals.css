@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
+
+@utility prose-inherit {
+  --tw-prose-body: currentColor;
+  --tw-prose-headings: currentColor;
+  --tw-prose-counters: currentColor;
+}
+
 @source '../../../apps/**/*.{ts,tsx}';
 @source '../../../components/**/*.{ts,tsx}';
 @source '../**/*.{ts,tsx}';
@@ -133,8 +140,8 @@
   --accent: var(--color-gray-900);
   --accent-foreground: var(--color-gray-200);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.26 0.002 196);
-  --input: oklch(0.26 0.002 196);
+  --border: var(--color-gray-900);
+  --input: var(--color-gray-900);
   --ring: var(--color-gray-700);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
@@ -147,7 +154,7 @@
   --sidebar-primary-foreground: var(--color-moss-950);
   --sidebar-accent: var(--color-gray-900);
   --sidebar-accent-foreground: var(--color-gray-200);
-  --sidebar-border: oklch(0.26 0.002 196);
+  --sidebar-border: var(--color-gray-900);
   --sidebar-ring: var(--color-gray-700);
 }
 
