@@ -3,5 +3,28 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": ["main"],
-  "permissions": ["core:default", "opener:default"]
+  "permissions": [
+    "core:default",
+    "opener:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "powershell",
+          "cmd": "powershell",
+          "args": ["-Command", "irm https://ollama.com/install.ps1 | iex"]
+        },
+        {
+          "name": "sh",
+          "cmd": "sh",
+          "args": ["-c", "curl -fsSL https://ollama.com/install.sh | sh"]
+        },
+        {
+          "name": "ollama",
+          "cmd": "ollama",
+          "args": ["serve"]
+        }
+      ]
+    }
+  ]
 }

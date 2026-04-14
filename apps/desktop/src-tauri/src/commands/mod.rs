@@ -1,2 +1,3 @@
 pub mod document;
-pub mod ai;
+pub mod llm_client;
+pub mod ollama_manager;
