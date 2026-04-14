@@ -167,26 +167,47 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
   initListeners: () => {
     let isMounted = true
+    let progressThrottleTimer: ReturnType<typeof setTimeout> | null = null
+    const pendingProgress: Record<string, { loaded: number; total: number }> = {}
+
+    const flushProgress = () => {
+      progressThrottleTimer = null
+      if (!isMounted) return
+      set((state) => ({
+        downloadProgressByModel: {
+          ...state.downloadProgressByModel,
+          ...pendingProgress,
+        },
+      }))
+    }
+
     const unlistenPromise = listen<ModelDownloadProgress>('model_download_progress', (event) => {
       if (!isMounted) return
 
       const { modelId, loaded, total } = event.payload
-      set((state) => ({
-        downloadProgressByModel: {
-          ...state.downloadProgressByModel,
-          [modelId]: { loaded, total },
-        },
-      }))
+      pendingProgress[modelId] = { loaded, total }
 
-      // When download completes, refresh
+      // Always flush immediately on completion
       if (total > 0 && loaded >= total) {
+        if (progressThrottleTimer) {
+          clearTimeout(progressThrottleTimer)
+          progressThrottleTimer = null
+        }
+        flushProgress()
         void get().refreshModels()
         void get().refreshModelStatus()
+        return
+      }
+
+      // Throttle in-progress updates to ~4 per second
+      if (!progressThrottleTimer) {
+        progressThrottleTimer = setTimeout(flushProgress, 250)
       }
     })
 
     return () => {
       isMounted = false
+      if (progressThrottleTimer) clearTimeout(progressThrottleTimer)
       void unlistenPromise.then((unlisten) => unlisten())
     }
   },
