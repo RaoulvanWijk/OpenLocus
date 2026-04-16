@@ -1,8 +1,11 @@
 mod commands;
+mod db;
 pub mod error;
 mod logging;
 mod models;
 mod utils;
+
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -19,6 +22,11 @@ pub fn run() {
         .setup(|app| {
             let version = app.package_info().version.to_string();
             tracing::info!(version = %version, "OpenLocus Started");
+
+            let db_conn = db::open(&app.handle()).map_err(std::io::Error::other)?;
+            db::migrate(&db_conn).map_err(std::io::Error::other)?;
+            app.manage(commands::ai::AppState::new(db_conn));
+
 
             // FIX: Start de engine in een aparte thread zodat de splashscreen niet bevriest
             let handle = app.handle().clone();

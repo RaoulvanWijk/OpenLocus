@@ -1,11 +1,6 @@
 import { useEffect, useRef } from 'react'
-import type { Message } from './hooks/use-chat'
 import { MarkdownRenderer } from './MarkdownRenderer'
-
-type MessageListProps = {
-  messages: Message[]
-  isStreaming: boolean
-}
+import { useAiStore } from './stores/ai-store'
 
 const EXAMPLE_PROMPTS = [
   'Summarise this note into three key bullets.',
@@ -13,7 +8,9 @@ const EXAMPLE_PROMPTS = [
   'Rewrite this note in a clearer structure.',
 ]
 
-export function MessageList({ messages, isStreaming }: MessageListProps) {
+export function MessageList() {
+  const messages = useAiStore((s) => s.messages)
+  const isStreaming = useAiStore((s) => s.isStreaming)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -26,7 +23,7 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
         <div className="mt-4 space-y-2 text-xs">
           <p className="text-muted-foreground text-center">Try one of these prompts:</p>
           {EXAMPLE_PROMPTS.map((prompt) => (
-            <div key={prompt} className="bg-muted text-muted-foreground rounded-md px-3 py-2">
+            <div key={prompt} className="bg-muted rounded-md px-3 py-2 text-white">
               {prompt}
             </div>
           ))}
@@ -41,7 +38,7 @@ export function MessageList({ messages, isStreaming }: MessageListProps) {
           <div
             className={
               message.role === 'user'
-                ? 'bg-primary text-primary-foreground max-w-[85%] rounded-lg px-3 py-2 text-xs'
+                ? 'bg-primary max-w-[85%] rounded-lg px-3 py-2 text-xs text-white'
                 : 'bg-muted max-w-[85%] rounded-lg px-3 py-2 text-xs **:text-xs'
             }
           >
