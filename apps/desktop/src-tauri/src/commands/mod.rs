@@ -1,8 +1,9 @@
 pub mod document;
-pub mod llm_client;
+pub mod chat;
 pub mod ollama_manager;
-pub mod splash;
 pub mod settings;
+pub mod splash;
+pub mod model_db;
 
 use std::sync::Mutex;
 use rusqlite::Connection;

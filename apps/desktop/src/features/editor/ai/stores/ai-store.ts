@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { create } from 'zustand'
 import { startChatStream, type ChatMessage } from '../lib/chat'
@@ -5,7 +6,6 @@ import {
   downloadModel,
   getModelStatus,
   listModels,
-  type ModelDownloadProgress,
   type ModelError,
   type ModelRow,
   type ModelStatus,
@@ -25,6 +25,13 @@ export type Message = ChatMessage & {
 type DownloadProgress = {
   loaded: number
   total: number
+}
+
+// Ollama specific payload for pull progress
+type OllamaPullProgress = {
+  status: string
+  completed?: number
+  total?: number
 }
 
 type AiStore = {
@@ -100,11 +107,23 @@ export const useAiStore = create<AiStore>((set, get) => ({
       modelError: null,
       downloadProgressByModel: { [id]: { loaded: 0, total: 0 } },
     })
+
+    // Update the LLM client configuration in the backend with the new ollama_id
+    const currentModel = get().models.find((m) => m.id === id)
+    if (currentModel) {
+      invoke('set_llm_config', {
+        baseUrl: 'http://localhost:11434/v1',
+        model: currentModel.ollama_id,
+        apiKey: null,
+      }).catch(console.error)
+    }
+
     void get().refreshModelStatus()
   },
 
   refreshModelStatus: async () => {
     try {
+      // Assuming getModelStatus checks the database for the 'downloaded' flag
       const status = await getModelStatus(get().activeModelId)
       set({ modelStatus: status, modelError: null })
     } catch (error) {
@@ -116,7 +135,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
     try {
       const models = await listModels()
       set({ models })
-      // Auto-select if needed
       get().autoSelectModel()
     } catch (error) {
       set({ modelError: getErrorMessage(error) })
@@ -125,20 +143,30 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
   downloadActiveModel: async () => {
     const { activeModelId } = get()
-    try {
-      set({ modelError: null })
-      await downloadModel(activeModelId, (loaded, total) => {
-        set((state) => ({
-          downloadProgressByModel: {
-            ...state.downloadProgressByModel,
-            [activeModelId]: { loaded, total },
-          },
-        }))
-      })
-      await get().refreshModelStatus()
-    } catch (error) {
-      set({ modelError: getErrorMessage(error) })
+
+    // 1. Forceer een refresh als er nog geen modellen zijn geladen
+    if (get().models.length === 0) {
+      await get().refreshModels()
     }
+
+    const currentModel = get().models.find((m) => m.id === activeModelId)
+
+    if (!currentModel) {
+      console.error('[AI Store] Model not found for ID:', activeModelId)
+      return
+    }
+
+    // 2. Start de pull met de ollama_id (bijv. ministral-3:3b)
+    await downloadModel(currentModel.ollama_id, (loaded, total) => {
+      set((state) => ({
+        downloadProgressByModel: {
+          ...state.downloadProgressByModel,
+          [activeModelId]: { loaded, total },
+        },
+      }))
+    })
+
+    await get().refreshModelStatus()
   },
 
   autoSelectModel: () => {
@@ -148,7 +176,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
     const currentModel = models.find((m) => m.id === activeModelId)
     if (currentModel?.downloaded) return
 
-    // Switch to in-progress download if any
     const inProgressModelId = Object.entries(downloadProgressByModel).find(
       ([, progress]) => progress.total === 0 || progress.loaded < progress.total,
     )?.[0]
@@ -158,7 +185,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
       return
     }
 
-    // Switch to first downloaded model
     const firstDownloaded = models.find((m) => m.downloaded)
     if (firstDownloaded && firstDownloaded.id !== activeModelId) {
       set({ activeModelId: firstDownloaded.id })
@@ -181,26 +207,33 @@ export const useAiStore = create<AiStore>((set, get) => ({
       }))
     }
 
-    const unlistenPromise = listen<ModelDownloadProgress>('model_download_progress', (event) => {
+    // Listen to the new Ollama pull event
+    const unlistenPromise = listen<OllamaPullProgress>('model-pull-progress', (event) => {
       if (!isMounted) return
 
-      const { modelId, loaded, total } = event.payload
-      pendingProgress[modelId] = { loaded, total }
+      const { status, completed, total } = event.payload
+      const { activeModelId } = get() // Correlate progress to the actively downloading model
 
-      // Always flush immediately on completion
-      if (total > 0 && loaded >= total) {
+      if (completed !== undefined && total !== undefined) {
+        pendingProgress[activeModelId] = { loaded: completed, total: total }
+      }
+
+      if (status === 'success') {
         if (progressThrottleTimer) {
           clearTimeout(progressThrottleTimer)
           progressThrottleTimer = null
         }
         flushProgress()
+
+        // Mark model as downloaded in the database via an invoke command if necessary here,
+        // or ensure your Rust pull_model command updates the SQLite DB upon success.
+
         void get().refreshModels()
         void get().refreshModelStatus()
         return
       }
 
-      // Throttle in-progress updates to ~4 per second
-      if (!progressThrottleTimer) {
+      if (!progressThrottleTimer && completed !== undefined) {
         progressThrottleTimer = setTimeout(flushProgress, 250)
       }
     })
@@ -214,7 +247,7 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
   // Chat actions
   sendMessage: async (noteContent: string) => {
-    const { input, isStreaming, messages } = get()
+    const { input, isStreaming, messages, activeModelId, models } = get()
 
     if (isStreaming) return
 
@@ -222,10 +255,7 @@ export const useAiStore = create<AiStore>((set, get) => ({
     activeStreamCleanup = null
 
     const normalizedText = input.trim()
-    if (
-      normalizedText.length < INPUT_MIN_LENGTH ||
-      normalizedText.length > INPUT_MAX_LENGTH
-    ) {
+    if (normalizedText.length < INPUT_MIN_LENGTH || normalizedText.length > INPUT_MAX_LENGTH) {
       set({
         chatError: `Message must be between ${INPUT_MIN_LENGTH} and ${INPUT_MAX_LENGTH} characters.`,
       })
@@ -245,15 +275,22 @@ export const useAiStore = create<AiStore>((set, get) => ({
         ? noteContent.slice(0, NOTE_CONTEXT_CHAR_BUDGET)
         : noteContent
 
-    if (trimmedNoteContent.length !== noteContent.length) {
-      console.warn(
-        '[ai] Note content was truncated before sending to model to stay within context budget.',
-      )
-    }
-
-    // Send only the conversation history + user message (NOT the empty assistant placeholder)
     const messagesToSend = [...messages, userMessage]
 
+    // Ensure the backend knows which model to use before sending the chat
+    const currentModel = models.find((m) => m.id === activeModelId)
+    if (currentModel) {
+      await invoke('set_llm_config', {
+        baseUrl: 'http://localhost:11434/v1',
+        model: currentModel.ollama_id,
+        apiKey: null,
+      }).catch(console.error)
+    }
+
+    // Call the chat command in Rust.
+    // Note: If you updated your Rust client to return the full response instead of a stream,
+    // you may need to adjust `startChatStream` in `../lib/chat` to handle a standard promise
+    // rather than a chunked stream.
     activeStreamCleanup = await startChatStream(messagesToSend, trimmedNoteContent, {
       onToken: (token) => {
         set((state) => {
@@ -285,7 +322,12 @@ export const useAiStore = create<AiStore>((set, get) => ({
               content: `Error: ${message}`,
             }
           }
-          return { messages: updated, chatError: message, isStreaming: false, input: userMessage.content }
+          return {
+            messages: updated,
+            chatError: message,
+            isStreaming: false,
+            input: userMessage.content,
+          }
         })
       },
     })

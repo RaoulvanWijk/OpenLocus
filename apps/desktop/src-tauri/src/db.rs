@@ -13,33 +13,26 @@ pub struct KnownModel {
 pub const KNOWN_MODELS: [KnownModel; 3] = [
     KnownModel {
         id: "ministral-3b",
-        ollama_id: "ministral",
+        ollama_id: "ministral-3:3b",
         name: "Ministral 3B",
         description: "Small but powerful for everyday tasks.",
         size_gb: "2.1GB",
     },
     KnownModel {
-        id: "llama-3.3-8b",
-        ollama_id: "llama3.3:8b",
-        name: "Llama 3.3 8B",
+        id: "llama-3.1-8b",
+        ollama_id: "llama3.1:8b",
+        name: "Llama 3.1 8B",
         description: "Meta's balanced model, optimized for speed and logic.",
         size_gb: "4.9GB",
     },
     KnownModel {
         id: "phi-4",
-        ollama_id: "phi4",
-        name: "Phi-4 15B",
+        ollama_id: "phi4:latest",
+        name: "Phi-4 14B",
         description: "Microsoft's high-end reasoning model.",
         size_gb: "9.1GB",
     },
 ];
-
-pub fn known_model_by_id(model_id: &str) -> Option<KnownModel> {
-    KNOWN_MODELS
-        .iter()
-        .copied()
-        .find(|model| model.id == model_id)
-}
 
 pub fn open(app: &AppHandle) -> Result<Connection, String> {
     let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;

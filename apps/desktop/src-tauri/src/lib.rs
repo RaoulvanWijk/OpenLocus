@@ -1,8 +1,8 @@
 mod commands;
 mod db;
+mod models;
 pub mod error;
 mod logging;
-mod models;
 mod utils;
 
 use tauri::Manager;
@@ -20,7 +20,7 @@ pub fn run() {
         .manage(commands::ollama_manager::OllamaProcessState(
             std::sync::Mutex::new(None),
         ))
-        .manage(commands::llm_client::LlmState::default())
+        .manage(commands::chat::LlmState::default())
         .setup(|app| {
             let version = app.package_info().version.to_string();
             tracing::info!(version = %version, "OpenLocus Started");
@@ -77,9 +77,12 @@ pub fn run() {
             commands::document::document_update,
             commands::settings::settings_get,
             commands::settings::settings_set,
-            commands::llm_client::chat,
-            commands::llm_client::get_llm_status,
-            commands::llm_client::set_llm_config,
+            commands::chat::chat,
+            commands::chat::get_llm_status,
+            commands::chat::set_llm_config,
+            commands::model_db::get_models,
+            commands::model_db::get_model_status,
+            commands::model_db::set_model_downloaded,
             commands::ollama_manager::pull_model,
             commands::ollama_manager::list_models,
             commands::ollama_manager::install_ollama,
