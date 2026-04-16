@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SplashRouteImport } from './routes/splash'
 import { Route as NotesRouteRouteImport } from './routes/notes/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NotesIndexRouteImport } from './routes/notes/index'
 import { Route as NotesIdRouteImport } from './routes/notes/$id'
 
+const SplashRoute = SplashRouteImport.update({
+  id: '/splash',
+  path: '/splash',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotesRouteRoute = NotesRouteRouteImport.update({
   id: '/notes',
   path: '/notes',
@@ -38,11 +44,13 @@ const NotesIdRoute = NotesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/notes': typeof NotesRouteRouteWithChildren
+  '/splash': typeof SplashRoute
   '/notes/$id': typeof NotesIdRoute
   '/notes/': typeof NotesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/splash': typeof SplashRoute
   '/notes/$id': typeof NotesIdRoute
   '/notes': typeof NotesIndexRoute
 }
@@ -50,24 +58,33 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/notes': typeof NotesRouteRouteWithChildren
+  '/splash': typeof SplashRoute
   '/notes/$id': typeof NotesIdRoute
   '/notes/': typeof NotesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/notes' | '/notes/$id' | '/notes/'
+  fullPaths: '/' | '/notes' | '/splash' | '/notes/$id' | '/notes/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/notes/$id' | '/notes'
-  id: '__root__' | '/' | '/notes' | '/notes/$id' | '/notes/'
+  to: '/' | '/splash' | '/notes/$id' | '/notes'
+  id: '__root__' | '/' | '/notes' | '/splash' | '/notes/$id' | '/notes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NotesRouteRoute: typeof NotesRouteRouteWithChildren
+  SplashRoute: typeof SplashRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/splash': {
+      id: '/splash'
+      path: '/splash'
+      fullPath: '/splash'
+      preLoaderRoute: typeof SplashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notes': {
       id: '/notes'
       path: '/notes'
@@ -116,6 +133,7 @@ const NotesRouteRouteWithChildren = NotesRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NotesRouteRoute: NotesRouteRouteWithChildren,
+  SplashRoute: SplashRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

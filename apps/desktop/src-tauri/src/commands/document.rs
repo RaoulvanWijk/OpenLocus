@@ -3,7 +3,7 @@ use std::fs;
 use tracing::debug;
 use uuid::Uuid;
 
-use crate::error::{AppError, log_contract_error, map_io_error, Result as AppResult};
+use crate::error::{log_contract_error, map_io_error, AppError, Result as AppResult};
 use crate::models::document::{CreateDocumentResult, DocumentContent, DocumentMeta};
 use crate::utils::{
     fs::openlocus_dir,
@@ -19,11 +19,19 @@ pub fn document_create(path: String, title: Option<String>) -> AppResult<CreateD
     let file_path = openlocus_dir()?.join(path);
 
     if let Some(parent) = file_path.parent() {
-        fs::create_dir_all(parent).map_err(|e| map_io_error("document_create", "create_dir_all", e))?;
+        fs::create_dir_all(parent)
+            .map_err(|e| map_io_error("document_create", "create_dir_all", e))?;
     }
 
-    let heading = if title.is_empty() { String::new() } else { format!("\n# {title}\n") };
-    let content = format!("---\nid: \"{id}\"\ntitle: \"{title}\"\ncreated_at: \"{now}\"\n---\n{}", heading);
+    let heading = if title.is_empty() {
+        String::new()
+    } else {
+        format!("\n# {title}\n")
+    };
+    let content = format!(
+        "---\nid: \"{id}\"\ntitle: \"{title}\"\ncreated_at: \"{now}\"\n---\n{}",
+        heading
+    );
 
     fs::write(&file_path, content).map_err(|e| map_io_error("document_create", "write", e))?;
 
@@ -38,7 +46,8 @@ pub fn document_create(path: String, title: Option<String>) -> AppResult<CreateD
 #[tauri::command]
 pub fn document_get(id: String) -> AppResult<DocumentContent> {
     let path = get_document_path(&id, "document_get")?;
-    let raw = fs::read_to_string(&path).map_err(|e| map_io_error("document_get", "read_to_string", e))?;
+    let raw =
+        fs::read_to_string(&path).map_err(|e| map_io_error("document_get", "read_to_string", e))?;
     let meta = read_document_meta(&path).ok_or_else(|| {
         let app_error = AppError::Internal("Failed to parse document metadata".to_string());
         log_contract_error("document_get", "read_document_meta", &app_error);
@@ -74,8 +83,16 @@ pub fn document_list() -> AppResult<Vec<DocumentMeta>> {
         .collect();
 
     docs.sort_by(|a, b| {
-        let a_time = if a.updated_at.is_empty() { &a.created_at } else { &a.updated_at };
-        let b_time = if b.updated_at.is_empty() { &b.created_at } else { &b.updated_at };
+        let a_time = if a.updated_at.is_empty() {
+            &a.created_at
+        } else {
+            &a.updated_at
+        };
+        let b_time = if b.updated_at.is_empty() {
+            &b.created_at
+        } else {
+            &b.updated_at
+        };
         b_time.cmp(a_time)
     });
 

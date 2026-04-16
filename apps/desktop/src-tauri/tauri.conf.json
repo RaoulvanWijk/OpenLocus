@@ -12,12 +12,20 @@
   "app": {
     "windows": [
       {
-        "title": "Open Locus",
-        "width": 800,
-        "height": 600,
-        "minWidth": 400,
-        "minHeight": 300,
-        "acceptFirstMouse": true
+        "title": "OpenLocus",
+        "label": "main",
+        "visible": false,
+        "width": 1200,
+        "height": 800
+      },
+      {
+        "title": "OpenLocus",
+        "label": "splashscreen",
+        "url": "/splash",
+        "width": 400,
+        "height": 300,
+        "decorations": false,
+        "center": true
       }
     ],
     "security": {
