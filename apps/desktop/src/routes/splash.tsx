@@ -181,11 +181,15 @@ export function SplashScreen() {
   }
 
   const handleError = (err: any) => {
+    const message =
+      typeof err === 'string'
+        ? err
+        : (err?.message ?? JSON.stringify(err) ?? 'An unexpected error occurred.')
     setCurrentStep('error')
     setOverallProgress(0)
     setSubProgress(0)
     setOverallStatus('Initialization Failed')
-    setSubStatus(typeof err === 'string' ? err : 'An error occurred during setup.')
+    setSubStatus(message)
   }
 
   const closeApp = async () => await getCurrentWindow().close()
