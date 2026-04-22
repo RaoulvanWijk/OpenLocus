@@ -21,6 +21,7 @@ function toErrorMessage(error: unknown): string {
 export async function startChatStream(
   messages: ChatMessage[],
   noteContent: string,
+  modelId: string,
   callbacks: ChatCallbacks,
 ): Promise<() => void> {
   let cleanedUp = false
@@ -52,7 +53,7 @@ export async function startChatStream(
   unlisteners.push(unlistenToken, unlistenDone, unlistenError)
 
   // Listeners registered — now invoke the backend
-  invoke('chat', { messages, noteContent }).catch((error: unknown) => {
+  invoke('chat', { messages, noteContent, modelId }).catch((error: unknown) => {
     if (cleanedUp) return
     callbacks.onError(toErrorMessage(error))
   })

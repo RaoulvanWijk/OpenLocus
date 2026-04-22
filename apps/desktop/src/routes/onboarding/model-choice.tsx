@@ -102,17 +102,17 @@ function RouteComponent() {
                       </Badge>
                     )}
                     <FieldTitle className="text-lg">{model.name}</FieldTitle>
-                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted">
+                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted-foreground">
                       {model.tagline}
                     </FieldDescription>
-                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted text-xs">
+                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted-foreground text-xs">
                       {model.specs}
                     </FieldDescription>
                     <ul className="mt-2 flex flex-col gap-1">
                       {model.capabilities.map((cap) => (
                         <li
                           key={cap}
-                          className="group-has-data-[state=checked]/field-label:text-muted text-muted-foreground flex items-start gap-2 text-xs"
+                          className="group-has-data-[state=checked]/field-label:text-muted-foreground text-muted-foreground flex items-start gap-2 text-xs"
                         >
                           <span className="mt-px">-</span>
                           <span>{cap}</span>

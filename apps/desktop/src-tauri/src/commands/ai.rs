@@ -15,6 +15,7 @@ use rusqlite::Connection;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::commands::models::{model_downloaded_with_conn, model_set_downloaded_with_conn};
+use crate::commands::settings::settings_get;
 use crate::db::known_model_by_id;
 
 // ---------- Event payloads ----------
@@ -364,9 +365,23 @@ pub struct ModelStatus {
 #[tauri::command]
 pub fn get_model_status(
     model_id: String,
+    app: AppHandle,
     state: tauri::State<AppState>,
 ) -> Result<ModelStatus, String> {
-    let downloaded = read_model_downloaded(&state, &model_id)?;
+    let db_downloaded = read_model_downloaded(&state, &model_id)?;
+    // Reconcile with filesystem: if DB says downloaded but file is gone, clear the flag.
+    let downloaded = if db_downloaded {
+        let path = model_file_path(&app, &model_id)?;
+        if path.exists() {
+            true
+        } else {
+            let _ = write_model_downloaded(&state, &model_id, false);
+            false
+        }
+    } else {
+        false
+    };
+
     let loaded_handle_exists = state
         .handle
         .lock()
@@ -421,6 +436,15 @@ pub async fn download_model(
     if !response.status().is_success() && response.status().as_u16() != 206 {
         return Err(format!("HTTP {} - download failed", response.status()));
     }
+
+    // If we sent a Range request but the server ignored it and returned 200 OK with the full
+    // file, appending would produce a corrupted oversized file. Restart from zero instead.
+    let already = if already > 0 && response.status().as_u16() == 200 {
+        std::fs::remove_file(&dest).map_err(|e| format!("Failed to reset partial file: {e}"))?;
+        0u64
+    } else {
+        already
+    };
 
     let total = response.content_length().map(|l| l + already).unwrap_or(0);
     let file = std::fs::OpenOptions::new()
@@ -538,33 +562,35 @@ pub struct ChatMessage {
 pub fn chat(
     messages: Vec<ChatMessage>,
     note_content: String,
+    model_id: Option<String>,
     app: AppHandle,
     state: tauri::State<AppState>,
 ) -> Result<(), String> {
-    // Check if model is loaded; if not, try to auto-load the currently active model
+    // Determine which model to use: explicit param → last_selected_model setting → default.
+    let requested_model_id = if let Some(id) = model_id {
+        id
+    } else {
+        settings_get("last_selected_model".to_string(), state.clone())
+            .unwrap_or(None)
+            .unwrap_or_else(|| "ministral-3b".to_string())
+    };
+
+    // If a different model (or no model) is loaded, load the requested one.
     {
-        let guard = state
+        let loaded_model_id = state
+            .loaded_model_id
+            .lock()
+            .map_err(|_| "Failed to lock model state".to_string())?
+            .clone();
+        let handle_exists = state
             .handle
             .lock()
-            .map_err(|_| "Failed to lock model state".to_string())?;
-        if guard.is_some() {
-            drop(guard);
-        } else {
-            // Model not loaded, try to auto-load the active model
-            drop(guard);
-            let loaded_model_id = state
-                .loaded_model_id
-                .lock()
-                .map_err(|_| "Failed to lock model state".to_string())?
-                .clone();
+            .map_err(|_| "Failed to lock model state".to_string())?
+            .is_some();
 
-            if let Some(model_id) = loaded_model_id {
-                // Try to load the model that was previously loaded
-                load_model(model_id.clone(), app.clone(), state.clone())?;
-            } else {
-                // No previously loaded model, try the default
-                load_model("ministral-3b".to_string(), app.clone(), state.clone())?;
-            }
+        let already_loaded = handle_exists && loaded_model_id.as_deref() == Some(requested_model_id.as_str());
+        if !already_loaded {
+            load_model(requested_model_id.clone(), app.clone(), state.clone())?;
         }
     }
 

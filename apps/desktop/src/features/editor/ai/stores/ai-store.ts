@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { create } from 'zustand'
 import { startChatStream, type ChatMessage } from '../lib/chat'
@@ -98,8 +99,8 @@ export const useAiStore = create<AiStore>((set, get) => ({
       activeModelId: id,
       modelStatus: { downloaded: false, loaded: false },
       modelError: null,
-      downloadProgressByModel: { [id]: { loaded: 0, total: 0 } },
     })
+    void invoke('settings_set', { key: 'last_selected_model', value: id }).catch(console.error)
     void get().refreshModelStatus()
   },
 
@@ -150,7 +151,7 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
     // Switch to in-progress download if any
     const inProgressModelId = Object.entries(downloadProgressByModel).find(
-      ([, progress]) => progress.total === 0 || progress.loaded < progress.total,
+      ([, progress]) => (progress.loaded > 0 || progress.total > 0) && progress.loaded < progress.total,
     )?.[0]
 
     if (inProgressModelId && inProgressModelId !== activeModelId) {
@@ -253,42 +254,49 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
     // Send only the conversation history + user message (NOT the empty assistant placeholder)
     const messagesToSend = [...messages, userMessage]
+    const { activeModelId } = get()
 
-    activeStreamCleanup = await startChatStream(messagesToSend, trimmedNoteContent, {
-      onToken: (token) => {
-        set((state) => {
-          const updated = [...state.messages]
-          const last = updated[updated.length - 1]
-          if (last?.role === 'assistant') {
-            updated[updated.length - 1] = {
-              ...last,
-              content: `${last.content}${token}`,
+    try {
+      activeStreamCleanup = await startChatStream(messagesToSend, trimmedNoteContent, activeModelId, {
+        onToken: (token) => {
+          set((state) => {
+            const updated = [...state.messages]
+            const last = updated[updated.length - 1]
+            if (last?.role === 'assistant') {
+              updated[updated.length - 1] = {
+                ...last,
+                content: `${last.content}${token}`,
+              }
             }
-          }
-          return { messages: updated }
-        })
-      },
-      onDone: () => {
-        activeStreamCleanup?.()
-        activeStreamCleanup = null
-        set({ isStreaming: false })
-      },
-      onError: (message) => {
-        activeStreamCleanup?.()
-        activeStreamCleanup = null
-        set((state) => {
-          const updated = [...state.messages]
-          const last = updated[updated.length - 1]
-          if (last?.role === 'assistant' && !last.content) {
-            updated[updated.length - 1] = {
-              ...last,
-              content: `Error: ${message}`,
+            return { messages: updated }
+          })
+        },
+        onDone: () => {
+          activeStreamCleanup?.()
+          activeStreamCleanup = null
+          set({ isStreaming: false })
+        },
+        onError: (message) => {
+          activeStreamCleanup?.()
+          activeStreamCleanup = null
+          set((state) => {
+            const updated = [...state.messages]
+            const last = updated[updated.length - 1]
+            if (last?.role === 'assistant' && !last.content) {
+              updated[updated.length - 1] = {
+                ...last,
+                content: `Error: ${message}`,
+              }
             }
-          }
-          return { messages: updated, chatError: message, isStreaming: false, input: userMessage.content }
-        })
-      },
-    })
+            return { messages: updated, chatError: message, isStreaming: false, input: userMessage.content }
+          })
+        },
+      })
+    } catch (error) {
+      activeStreamCleanup?.()
+      activeStreamCleanup = null
+      set({ isStreaming: false, chatError: getErrorMessage(error), input: userMessage.content })
+    }
   },
 
   onInputChange: (value: string) => {

@@ -5,7 +5,8 @@ export function ModelDownloadProgress() {
   const models = useAiStore((s) => s.models)
 
   const activeEntry = Object.entries(downloadProgressByModel).find(
-    ([, progress]) => progress.total === 0 || progress.loaded < progress.total,
+    ([, progress]) =>
+      (progress.loaded > 0 || progress.total > 0) && progress.loaded < progress.total,
   )
 
   if (!activeEntry) return null
