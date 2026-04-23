@@ -291,46 +291,51 @@ export const useAiStore = create<AiStore>((set, get) => ({
     // Note: If you updated your Rust client to return the full response instead of a stream,
     // you may need to adjust `startChatStream` in `../lib/chat` to handle a standard promise
     // rather than a chunked stream.
-    activeStreamCleanup = await startChatStream(messagesToSend, trimmedNoteContent, {
-      onToken: (token) => {
-        set((state) => {
-          const updated = [...state.messages]
-          const last = updated[updated.length - 1]
-          if (last?.role === 'assistant') {
-            updated[updated.length - 1] = {
-              ...last,
-              content: `${last.content}${token}`,
+    activeStreamCleanup = await startChatStream(
+      messagesToSend,
+      trimmedNoteContent,
+      currentModel?.ollama_id ?? get().activeModelId, // modelId toevoegen
+      {
+        onToken: (token) => {
+          set((state) => {
+            const updated = [...state.messages]
+            const last = updated[updated.length - 1]
+            if (last?.role === 'assistant') {
+              updated[updated.length - 1] = {
+                ...last,
+                content: `${last.content}${token}`,
+              }
             }
-          }
-          return { messages: updated }
-        })
-      },
-      onDone: () => {
-        activeStreamCleanup?.()
-        activeStreamCleanup = null
-        set({ isStreaming: false })
-      },
-      onError: (message) => {
-        activeStreamCleanup?.()
-        activeStreamCleanup = null
-        set((state) => {
-          const updated = [...state.messages]
-          const last = updated[updated.length - 1]
-          if (last?.role === 'assistant' && !last.content) {
-            updated[updated.length - 1] = {
-              ...last,
-              content: `Error: ${message}`,
+            return { messages: updated }
+          })
+        },
+        onDone: () => {
+          activeStreamCleanup?.()
+          activeStreamCleanup = null
+          set({ isStreaming: false })
+        },
+        onError: (message) => {
+          activeStreamCleanup?.()
+          activeStreamCleanup = null
+          set((state) => {
+            const updated = [...state.messages]
+            const last = updated[updated.length - 1]
+            if (last?.role === 'assistant' && !last.content) {
+              updated[updated.length - 1] = {
+                ...last,
+                content: `Error: ${message}`,
+              }
             }
-          }
-          return {
-            messages: updated,
-            chatError: message,
-            isStreaming: false,
-            input: userMessage.content,
-          }
-        })
+            return {
+              messages: updated,
+              chatError: message,
+              isStreaming: false,
+              input: userMessage.content,
+            }
+          })
+        },
       },
-    })
+    )
   },
 
   onInputChange: (value: string) => {

@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+<<<<<<< HEAD
 import { Route as SplashRouteImport } from './routes/splash'
+=======
+>>>>>>> origin/main
 import { Route as OnboardingRouteRouteImport } from './routes/onboarding/route'
 import { Route as NotesRouteRouteImport } from './routes/notes/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,11 +20,14 @@ import { Route as NotesIndexRouteImport } from './routes/notes/index'
 import { Route as OnboardingModelChoiceRouteImport } from './routes/onboarding/model-choice'
 import { Route as NotesIdRouteImport } from './routes/notes/$id'
 
+<<<<<<< HEAD
 const SplashRoute = SplashRouteImport.update({
   id: '/splash',
   path: '/splash',
   getParentRoute: () => rootRouteImport,
 } as any)
+=======
+>>>>>>> origin/main
 const OnboardingRouteRoute = OnboardingRouteRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -57,7 +63,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/notes': typeof NotesRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
+<<<<<<< HEAD
   '/splash': typeof SplashRoute
+=======
+>>>>>>> origin/main
   '/notes/$id': typeof NotesIdRoute
   '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes/': typeof NotesIndexRoute
@@ -65,7 +74,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRouteRouteWithChildren
+<<<<<<< HEAD
   '/splash': typeof SplashRoute
+=======
+>>>>>>> origin/main
   '/notes/$id': typeof NotesIdRoute
   '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes': typeof NotesIndexRoute
@@ -75,7 +87,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/notes': typeof NotesRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
+<<<<<<< HEAD
   '/splash': typeof SplashRoute
+=======
+>>>>>>> origin/main
   '/notes/$id': typeof NotesIdRoute
   '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes/': typeof NotesIndexRoute
@@ -86,11 +101,15 @@ export interface FileRouteTypes {
     | '/'
     | '/notes'
     | '/onboarding'
+<<<<<<< HEAD
     | '/splash'
+=======
+>>>>>>> origin/main
     | '/notes/$id'
     | '/onboarding/model-choice'
     | '/notes/'
   fileRoutesByTo: FileRoutesByTo
+<<<<<<< HEAD
   to:
     | '/'
     | '/onboarding'
@@ -98,12 +117,18 @@ export interface FileRouteTypes {
     | '/notes/$id'
     | '/onboarding/model-choice'
     | '/notes'
+=======
+  to: '/' | '/onboarding' | '/notes/$id' | '/onboarding/model-choice' | '/notes'
+>>>>>>> origin/main
   id:
     | '__root__'
     | '/'
     | '/notes'
     | '/onboarding'
+<<<<<<< HEAD
     | '/splash'
+=======
+>>>>>>> origin/main
     | '/notes/$id'
     | '/onboarding/model-choice'
     | '/notes/'
@@ -113,11 +138,15 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NotesRouteRoute: typeof NotesRouteRouteWithChildren
   OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
+<<<<<<< HEAD
   SplashRoute: typeof SplashRoute
+=======
+>>>>>>> origin/main
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+<<<<<<< HEAD
     '/splash': {
       id: '/splash'
       path: '/splash'
@@ -125,6 +154,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SplashRouteImport
       parentRoute: typeof rootRouteImport
     }
+=======
+>>>>>>> origin/main
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -200,7 +231,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NotesRouteRoute: NotesRouteRouteWithChildren,
   OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
+<<<<<<< HEAD
   SplashRoute: SplashRoute,
+=======
+>>>>>>> origin/main
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

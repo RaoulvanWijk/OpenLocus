@@ -60,6 +60,7 @@ function toModelError(operation: ModelError['operation'], error: unknown): Model
 export async function getModelStatus(modelId: string): Promise<ModelStatus> {
   try {
     return await invoke<ModelStatus>('get_model_status', { modelId })
+    return await invoke<ModelStatus>('get_model_status', { modelId })
   } catch (error) {
     throw toModelError('get_status', error)
   }

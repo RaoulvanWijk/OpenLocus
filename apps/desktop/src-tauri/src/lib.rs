@@ -7,6 +7,8 @@ mod utils;
 
 use tauri::Manager;
 
+use tauri::Manager;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     if let Err(error) = logging::init_logging() {
