@@ -18,12 +18,10 @@ function toErrorMessage(error: unknown): string {
 }
 
 export async function startChatStream(
-export async function startChatStream(
   messages: ChatMessage[],
   noteContent: string,
   modelId: string,
   callbacks: ChatCallbacks,
-): Promise<() => void> {
 ): Promise<() => void> {
   let cleanedUp = false
 
@@ -46,6 +44,7 @@ export async function startChatStream(
       chat_history: chatHistory,
       user_message: userMessage,
     },
+    modelId,
   })
     .then(async (fullResponse) => {
       if (cleanedUp) return
