@@ -1,4 +1,3 @@
-pub mod ai;
 pub mod document;
 pub mod chat;
 pub mod ollama_manager;
