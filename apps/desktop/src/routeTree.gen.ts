@@ -9,11 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OnboardingRouteRouteImport } from './routes/onboarding/route'
 import { Route as NotesRouteRouteImport } from './routes/notes/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NotesIndexRouteImport } from './routes/notes/index'
+import { Route as OnboardingModelChoiceRouteImport } from './routes/onboarding/model-choice'
 import { Route as NotesIdRouteImport } from './routes/notes/$id'
 
+const OnboardingRouteRoute = OnboardingRouteRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotesRouteRoute = NotesRouteRouteImport.update({
   id: '/notes',
   path: '/notes',
@@ -29,6 +36,11 @@ const NotesIndexRoute = NotesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => NotesRouteRoute,
 } as any)
+const OnboardingModelChoiceRoute = OnboardingModelChoiceRouteImport.update({
+  id: '/model-choice',
+  path: '/model-choice',
+  getParentRoute: () => OnboardingRouteRoute,
+} as any)
 const NotesIdRoute = NotesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -38,36 +50,63 @@ const NotesIdRoute = NotesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/notes': typeof NotesRouteRouteWithChildren
+  '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/notes/$id': typeof NotesIdRoute
+  '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes/': typeof NotesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/notes/$id': typeof NotesIdRoute
+  '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes': typeof NotesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/notes': typeof NotesRouteRouteWithChildren
+  '/onboarding': typeof OnboardingRouteRouteWithChildren
   '/notes/$id': typeof NotesIdRoute
+  '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes/': typeof NotesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/notes' | '/notes/$id' | '/notes/'
+  fullPaths:
+    | '/'
+    | '/notes'
+    | '/onboarding'
+    | '/notes/$id'
+    | '/onboarding/model-choice'
+    | '/notes/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/notes/$id' | '/notes'
-  id: '__root__' | '/' | '/notes' | '/notes/$id' | '/notes/'
+  to: '/' | '/onboarding' | '/notes/$id' | '/onboarding/model-choice' | '/notes'
+  id:
+    | '__root__'
+    | '/'
+    | '/notes'
+    | '/onboarding'
+    | '/notes/$id'
+    | '/onboarding/model-choice'
+    | '/notes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NotesRouteRoute: typeof NotesRouteRouteWithChildren
+  OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notes': {
       id: '/notes'
       path: '/notes'
@@ -88,6 +127,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/notes/'
       preLoaderRoute: typeof NotesIndexRouteImport
       parentRoute: typeof NotesRouteRoute
+    }
+    '/onboarding/model-choice': {
+      id: '/onboarding/model-choice'
+      path: '/model-choice'
+      fullPath: '/onboarding/model-choice'
+      preLoaderRoute: typeof OnboardingModelChoiceRouteImport
+      parentRoute: typeof OnboardingRouteRoute
     }
     '/notes/$id': {
       id: '/notes/$id'
@@ -113,9 +159,22 @@ const NotesRouteRouteWithChildren = NotesRouteRoute._addFileChildren(
   NotesRouteRouteChildren,
 )
 
+interface OnboardingRouteRouteChildren {
+  OnboardingModelChoiceRoute: typeof OnboardingModelChoiceRoute
+}
+
+const OnboardingRouteRouteChildren: OnboardingRouteRouteChildren = {
+  OnboardingModelChoiceRoute: OnboardingModelChoiceRoute,
+}
+
+const OnboardingRouteRouteWithChildren = OnboardingRouteRoute._addFileChildren(
+  OnboardingRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NotesRouteRoute: NotesRouteRouteWithChildren,
+  OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

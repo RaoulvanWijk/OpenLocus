@@ -31,7 +31,7 @@ function RouteComponent() {
   const { notes } = Route.useLoaderData()
 
   return (
-    <div className="fixed inset-0">
+    <div className="fixed inset-0 border-t">
       <EditorContextProvider initialNotes={notes}>
         <ResizableSidebarProvider>
           <ResizableSidebarLayout>
