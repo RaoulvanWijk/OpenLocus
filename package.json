@@ -19,5 +19,8 @@
   "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@tauri-apps/plugin-process": "^2.3.1"
   }
 }

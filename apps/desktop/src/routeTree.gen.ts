@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SplashRouteImport } from './routes/splash'
 import { Route as OnboardingRouteRouteImport } from './routes/onboarding/route'
 import { Route as NotesRouteRouteImport } from './routes/notes/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +17,11 @@ import { Route as NotesIndexRouteImport } from './routes/notes/index'
 import { Route as OnboardingModelChoiceRouteImport } from './routes/onboarding/model-choice'
 import { Route as NotesIdRouteImport } from './routes/notes/$id'
 
+const SplashRoute = SplashRouteImport.update({
+  id: '/splash',
+  path: '/splash',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRouteRoute = OnboardingRouteRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/notes': typeof NotesRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
+  '/splash': typeof SplashRoute
   '/notes/$id': typeof NotesIdRoute
   '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes/': typeof NotesIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRouteRouteWithChildren
+  '/splash': typeof SplashRoute
   '/notes/$id': typeof NotesIdRoute
   '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes': typeof NotesIndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/notes': typeof NotesRouteRouteWithChildren
   '/onboarding': typeof OnboardingRouteRouteWithChildren
+  '/splash': typeof SplashRoute
   '/notes/$id': typeof NotesIdRoute
   '/onboarding/model-choice': typeof OnboardingModelChoiceRoute
   '/notes/': typeof NotesIndexRoute
@@ -77,16 +86,24 @@ export interface FileRouteTypes {
     | '/'
     | '/notes'
     | '/onboarding'
+    | '/splash'
     | '/notes/$id'
     | '/onboarding/model-choice'
     | '/notes/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/onboarding' | '/notes/$id' | '/onboarding/model-choice' | '/notes'
+  to:
+    | '/'
+    | '/onboarding'
+    | '/splash'
+    | '/notes/$id'
+    | '/onboarding/model-choice'
+    | '/notes'
   id:
     | '__root__'
     | '/'
     | '/notes'
     | '/onboarding'
+    | '/splash'
     | '/notes/$id'
     | '/onboarding/model-choice'
     | '/notes/'
@@ -96,10 +113,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NotesRouteRoute: typeof NotesRouteRouteWithChildren
   OnboardingRouteRoute: typeof OnboardingRouteRouteWithChildren
+  SplashRoute: typeof SplashRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/splash': {
+      id: '/splash'
+      path: '/splash'
+      fullPath: '/splash'
+      preLoaderRoute: typeof SplashRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -175,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NotesRouteRoute: NotesRouteRouteWithChildren,
   OnboardingRouteRoute: OnboardingRouteRouteWithChildren,
+  SplashRoute: SplashRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

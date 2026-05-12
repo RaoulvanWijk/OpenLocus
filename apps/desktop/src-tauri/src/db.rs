@@ -3,39 +3,36 @@ use tauri::{AppHandle, Manager};
 
 #[derive(Clone, Copy)]
 pub struct KnownModel {
-    pub id: &'static str,
-    pub name: &'static str,
-    pub file_name: &'static str,
-    pub download_url: &'static str,
+    pub id: &'static str,       
+    pub ollama_id: &'static str,  
+    pub name: &'static str,       
+    pub description: &'static str, 
+    pub size_gb: &'static str,     
 }
 
 pub const KNOWN_MODELS: [KnownModel; 3] = [
     KnownModel {
         id: "ministral-3b",
+        ollama_id: "ministral-3:3b",
         name: "Ministral 3B",
-        file_name: "ministral-3b-q4_k_m.gguf",
-        download_url: "https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-GGUF/resolve/main/Ministral-3-3B-Instruct-2512-Q4_K_M.gguf",
+        description: "Small but powerful for everyday tasks.",
+        size_gb: "2.1GB",
     },
     KnownModel {
-        id: "llama-3.3-8b",
-        name: "Llama 3.3 8B",
-        file_name: "llama-3.3-8b-q4_k_m.gguf",
-        download_url: "https://huggingface.co/bartowski/Llama-3.3-8B-Instruct-GGUF/resolve/main/Llama-3.3-8B-Instruct-Q4_K_M.gguf",
+        id: "llama-3.1-8b",
+        ollama_id: "llama3.1:8b",
+        name: "Llama 3.1 8B",
+        description: "Meta's balanced model, optimized for speed and logic.",
+        size_gb: "4.9GB",
     },
     KnownModel {
-        id: "phi-4-15b",
-        name: "Phi-4 15B",
-        file_name: "phi-4-15b-q4_k_m.gguf",
-        download_url: "https://huggingface.co/bartowski/Phi-4-GGUF/resolve/main/Phi-4-Q4_K_M.gguf",
+        id: "phi-4",
+        ollama_id: "phi4:latest",
+        name: "Phi-4 14B",
+        description: "Microsoft's high-end reasoning model.",
+        size_gb: "9.1GB",
     },
 ];
-
-pub fn known_model_by_id(model_id: &str) -> Option<KnownModel> {
-    KNOWN_MODELS
-        .iter()
-        .copied()
-        .find(|model| model.id == model_id)
-}
 
 pub fn open(app: &AppHandle) -> Result<Connection, String> {
     let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
@@ -44,10 +41,8 @@ pub fn open(app: &AppHandle) -> Result<Connection, String> {
     let db_path = app_data_dir.join("openlocus.db");
     let conn = Connection::open(db_path).map_err(|e| e.to_string())?;
 
-    conn.pragma_update(None, "journal_mode", "WAL")
-        .map_err(|e| e.to_string())?;
-    conn.pragma_update(None, "foreign_keys", 1)
-        .map_err(|e| e.to_string())?;
+    conn.pragma_update(None, "journal_mode", "WAL").map_err(|e| e.to_string())?;
+    conn.pragma_update(None, "foreign_keys", 1).map_err(|e| e.to_string())?;
 
     Ok(conn)
 }
@@ -66,9 +61,12 @@ pub fn migrate(conn: &Connection) -> Result<(), String> {
         );
 
         CREATE TABLE IF NOT EXISTS models (
-            id         TEXT PRIMARY KEY,
-            name       TEXT NOT NULL,
-            downloaded INTEGER NOT NULL DEFAULT 0
+            id           TEXT PRIMARY KEY,
+            ollama_id    TEXT NOT NULL,
+            name         TEXT NOT NULL,
+            description  TEXT,
+            size_gb      TEXT,
+            downloaded   INTEGER NOT NULL DEFAULT 0
         );
         ",
     )
@@ -89,10 +87,10 @@ pub fn migrate(conn: &Connection) -> Result<(), String> {
     for model in KNOWN_MODELS {
         tx.execute(
             "
-            INSERT OR IGNORE INTO models (id, name, downloaded)
-            VALUES (?1, ?2, 0)
+            INSERT OR IGNORE INTO models (id, ollama_id, name, description, size_gb, downloaded)
+            VALUES (?1, ?2, ?3, ?4, ?5, 0)
             ",
-            params![model.id, model.name],
+            params![model.id, model.ollama_id, model.name, model.description, model.size_gb],
         )
         .map_err(|e| e.to_string())?;
     }

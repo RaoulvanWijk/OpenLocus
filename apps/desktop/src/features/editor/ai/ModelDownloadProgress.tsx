@@ -5,8 +5,7 @@ export function ModelDownloadProgress() {
   const models = useAiStore((s) => s.models)
 
   const activeEntry = Object.entries(downloadProgressByModel).find(
-    ([, progress]) =>
-      (progress.loaded > 0 || progress.total > 0) && progress.loaded < progress.total,
+    ([, progress]) => progress.total === 0 || progress.loaded < progress.total,
   )
 
   if (!activeEntry) return null
@@ -22,7 +21,7 @@ export function ModelDownloadProgress() {
         Downloading {name}
         {percent !== null ? ` (${percent}%)` : ''}
       </p>
-      <div className="bg-muted h-1 w-full rounded-full overflow-hidden">
+      <div className="bg-muted h-1 w-full overflow-hidden rounded-full">
         <div
           className="bg-primary h-full rounded-full transition-all"
           style={{ width: percent !== null ? `${percent}%` : '0%' }}

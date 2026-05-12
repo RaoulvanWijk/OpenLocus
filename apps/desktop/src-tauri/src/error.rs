@@ -3,35 +3,35 @@ use thiserror::Error;
 use ts_rs::TS;
 
 #[derive(Debug, Clone, Serialize, TS)]
-#[serde(tag = "error_code")] 
+#[serde(tag = "error_code")]
 #[ts(export, rename = "AppError")]
 pub enum ErrorDto {
     #[serde(rename = "IO")]
     Io {
         #[ts(type = "\"filesystem\"")]
         context: String,
-        technical_details: Option<String>
+        technical_details: Option<String>,
     },
 
     #[serde(rename = "DB")]
     Db {
         #[ts(type = "\"database\"")]
         context: String,
-        technical_details: Option<String>
+        technical_details: Option<String>,
     },
 
     #[serde(rename = "AI")]
     Ai {
         #[ts(type = "\"ai\"")]
         context: String,
-        technical_details: Option<String>
+        technical_details: Option<String>,
     },
 
     #[serde(rename = "INTERNAL")]
     Internal {
         #[ts(type = "\"internal\"")]
         context: String,
-        technical_details: Option<String>
+        technical_details: Option<String>,
     },
 }
 
@@ -60,21 +60,21 @@ impl AppError {
         };
 
         match self {
-            Self::Io(_) => ErrorDto::Io { 
-                context: "filesystem".to_string(), 
-                technical_details: details.clone() 
+            Self::Io(_) => ErrorDto::Io {
+                context: "filesystem".to_string(),
+                technical_details: details.clone(),
             },
-            Self::Database(_) => ErrorDto::Db { 
-                context: "database".to_string(), 
-                technical_details: details.clone() 
+            Self::Database(_) => ErrorDto::Db {
+                context: "database".to_string(),
+                technical_details: details.clone(),
             },
-            Self::Ai(_) => ErrorDto::Ai { 
-                context: "ai".to_string(), 
-                technical_details: details.clone() 
+            Self::Ai(_) => ErrorDto::Ai {
+                context: "ai".to_string(),
+                technical_details: details.clone(),
             },
-            Self::Internal(_) => ErrorDto::Internal { 
-                context: "internal".to_string(), 
-                technical_details: details.clone() 
+            Self::Internal(_) => ErrorDto::Internal {
+                context: "internal".to_string(),
+                technical_details: details.clone(),
             },
         }
     }
@@ -152,7 +152,7 @@ mod tests {
     fn test_io_error_conversion() {
         let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "file not found");
         let app_err: AppError = io_err.into();
-        
+
         assert!(matches!(app_err, AppError::Io(_)));
         assert_eq!(app_err.to_string(), "I/O error: file not found");
     }
@@ -166,7 +166,7 @@ mod tests {
 
         assert_eq!(value["error_code"], "AI");
         assert_eq!(value["context"], "ai");
-        
+
         // This test assumes debug_assertions are ON (which they are during `cargo test`)
         assert_eq!(value["technical_details"], "AI error: model unavailable");
     }
@@ -181,7 +181,10 @@ mod tests {
                 technical_details,
             } => {
                 assert_eq!(context, "internal");
-                assert_eq!(technical_details, Some("Internal error: failure".to_string()));
+                assert_eq!(
+                    technical_details,
+                    Some("Internal error: failure".to_string())
+                );
             }
             _ => panic!("expected internal dto variant"),
         }
