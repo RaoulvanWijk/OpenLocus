@@ -27,7 +27,7 @@ export const ChatSidebar = () => {
 
   return (
     <ResizableSidebar minSize="14rem" defaultSize="20rem" maxSize="32rem" className="max-h-screen">
-      <ResizableSidebarHeader className="flex-row items-center justify-between gap-2 border-b px-3 py-2">
+      <ResizableSidebarHeader className="h-16 flex-row items-center justify-between gap-2 border-b px-3">
         <ResizableSidebarTrigger size="icon-lg" className="group-data-[collapsible=icon]:size-8">
           <ChevronRight className="group-data-[collapsible=offcanvas]:rotate-180" />
         </ResizableSidebarTrigger>
