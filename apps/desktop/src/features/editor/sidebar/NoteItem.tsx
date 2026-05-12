@@ -55,7 +55,7 @@ export default function NoteItem({ note }: NoteItemProps) {
             <span className="min-w-0 flex-1 space-y-1">
               <p
                 className={cn(
-                  'truncate text-sm whitespace-nowrap group-data-[collapsible=icon]:pl-1 group-data-[collapsible=icon]:text-clip',
+                  'mb-0 truncate text-sm whitespace-nowrap group-data-[collapsible=icon]:pl-1 group-data-[collapsible=icon]:text-clip',
                   {
                     'text-gray-400': note.title === '',
                   },
