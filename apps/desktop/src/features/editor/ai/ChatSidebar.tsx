@@ -46,7 +46,7 @@ export const ChatSidebar = () => {
         </NewChatDialog>
       </ResizableSidebarHeader>
 
-      <ResizableSidebarContent className="flex h-full flex-col overflow-hidden">
+      <ResizableSidebarContent className="flex h-full flex-col gap-0 overflow-hidden">
         <ModelDownloadProgress />
         <MessageList />
         <ChatError />
