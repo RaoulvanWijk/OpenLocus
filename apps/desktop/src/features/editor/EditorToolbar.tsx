@@ -37,7 +37,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
   })
 
   return (
-    <div className="no-scrollbar flex items-center gap-1 overflow-x-auto border-b px-8 py-4">
+    <div className="no-scrollbar flex h-16 items-center gap-1 overflow-x-auto border-b px-8">
       <Toggle
         size="sm"
         pressed={editorState.isBold}
@@ -66,7 +66,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         <Strikethrough className="size-4" />
       </Toggle>
 
-      <Separator orientation="vertical" className="mx-1 h-4" />
+      <Separator orientation="vertical" className="mx-1 h-6!" />
 
       <Toggle
         size="sm"
@@ -123,7 +123,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         <Heading6 className="size-4" />
       </Toggle>
 
-      <Separator orientation="vertical" className="mx-1 h-4" />
+      <Separator orientation="vertical" className="mx-1 h-6!" />
 
       <Toggle
         size="sm"
@@ -169,7 +169,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         <Redo className="size-4" />
       </Button> */}
 
-      <Separator orientation="vertical" className="mx-1 h-4" />
+      <Separator orientation="vertical" className="mx-1 h-6!" />
 
       <Toggle
         size="sm"
