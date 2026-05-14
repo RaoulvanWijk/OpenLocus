@@ -1,5 +1,4 @@
 import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
 
 export type ModelStatus = {
   downloaded: boolean
@@ -15,8 +14,8 @@ export type ModelRow = {
   downloaded: boolean
 }
 
-// Ollama's specifieke pull progress event
 export type OllamaPullProgress = {
+  model_id: string
   status: string
   completed?: number
   total?: number
@@ -24,7 +23,7 @@ export type OllamaPullProgress = {
 
 export type ModelError = {
   type: 'model_error'
-  operation: 'get_status' | 'download' | 'list'
+  operation: 'get_status' | 'download' | 'list' | 'cancel'
   message: string
   cause?: unknown
 }
@@ -83,23 +82,18 @@ export async function setModelDownloaded(modelId: string): Promise<void> {
   }
 }
 
-export async function downloadModel(
-  modelOllamaId: string, // Vanuit ai-store.ts sturen we nu de ollama_id mee!
-  onProgress: (loaded: number, total: number) => void,
-): Promise<void> {
-  // 1. Luister naar het nieuwe Ollama-event in plaats van het oude
-  const unlisten = await listen<OllamaPullProgress>('model-pull-progress', (event) => {
-    if (event.payload.completed !== undefined && event.payload.total !== undefined) {
-      onProgress(event.payload.completed, event.payload.total)
-    }
-  })
-
+export async function downloadModel(modelId: string, modelOllamaId: string): Promise<void> {
   try {
-    // 2. Roep het NIEUWE commando aan (pull_model) met de juiste parameter (modelName)
-    await invoke('pull_model', { modelName: modelOllamaId })
+    await invoke('pull_model', { modelId, modelName: modelOllamaId })
   } catch (error) {
     throw toModelError('download', error)
-  } finally {
-    unlisten()
+  }
+}
+
+export async function cancelModelPull(modelId: string): Promise<void> {
+  try {
+    await invoke('cancel_model_pull', { modelId })
+  } catch (error) {
+    throw toModelError('cancel', error)
   }
 }

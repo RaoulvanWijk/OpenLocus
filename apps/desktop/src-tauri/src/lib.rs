@@ -20,6 +20,9 @@ pub fn run() {
         .manage(commands::ollama_manager::OllamaProcessState(
             std::sync::Mutex::new(None),
         ))
+        .manage(commands::ollama_manager::ActiveDownloads(
+            std::sync::Mutex::new(std::collections::HashMap::new()),
+        ))
         .manage(commands::chat::LlmState::default())
         .setup(|app| {
             let version = app.package_info().version.to_string();
@@ -84,6 +87,7 @@ pub fn run() {
             commands::model_db::get_model_status,
             commands::model_db::set_model_downloaded,
             commands::ollama_manager::pull_model,
+            commands::ollama_manager::cancel_model_pull,
             commands::ollama_manager::list_models,
             commands::ollama_manager::install_ollama,
             commands::ollama_manager::check_ollama_health,

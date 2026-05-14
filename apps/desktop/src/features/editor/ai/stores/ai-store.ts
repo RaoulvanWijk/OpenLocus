@@ -3,6 +3,7 @@ import { listen } from '@tauri-apps/api/event'
 import { create } from 'zustand'
 import { startChatStream, type ChatMessage } from '../lib/chat'
 import {
+  cancelModelPull,
   downloadModel,
   getModelStatus,
   listModels,
@@ -29,6 +30,7 @@ type DownloadProgress = {
 
 // Ollama specific payload for pull progress
 type OllamaPullProgress = {
+  model_id: string
   status: string
   completed?: number
   total?: number
@@ -52,7 +54,9 @@ type AiStore = {
   setActiveModelId: (id: string) => void
   refreshModelStatus: () => Promise<void>
   refreshModels: () => Promise<void>
+  downloadModel: (modelId: string) => Promise<void>
   downloadActiveModel: () => Promise<void>
+  cancelDownload: (modelId: string) => Promise<void>
   autoSelectModel: () => void
   initListeners: () => () => void
 
@@ -110,7 +114,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
       activeModelId: id,
       modelStatus: { downloaded: false, loaded: false },
       modelError: null,
-      downloadProgressByModel: { [id]: { loaded: 0, total: 0 } },
     })
 
     // Update the LLM client configuration in the backend with the new ollama_id
@@ -146,32 +149,48 @@ export const useAiStore = create<AiStore>((set, get) => ({
     }
   },
 
-  downloadActiveModel: async () => {
-    const { activeModelId } = get()
-
-    // 1. Forceer een refresh als er nog geen modellen zijn geladen
+  downloadModel: async (modelId: string) => {
     if (get().models.length === 0) {
       await get().refreshModels()
     }
 
-    const currentModel = get().models.find((m) => m.id === activeModelId)
-
-    if (!currentModel) {
-      console.error('[AI Store] Model not found for ID:', activeModelId)
+    const model = get().models.find((m) => m.id === modelId)
+    if (!model) {
+      console.error('[AI Store] Model not found for ID:', modelId)
       return
     }
 
-    // 2. Start de pull met de ollama_id (bijv. ministral-3:3b)
-    await downloadModel(currentModel.ollama_id, (loaded, total) => {
-      set((state) => ({
-        downloadProgressByModel: {
-          ...state.downloadProgressByModel,
-          [activeModelId]: { loaded, total },
-        },
-      }))
-    })
+    // Seed the progress entry so the UI shows the bar immediately
+    set((state) => ({
+      downloadProgressByModel: {
+        ...state.downloadProgressByModel,
+        [modelId]: { loaded: 0, total: 0 },
+      },
+      modelError: null,
+    }))
 
-    await get().refreshModelStatus()
+    try {
+      await downloadModel(modelId, model.ollama_id)
+    } catch (error) {
+      set({ modelError: getErrorMessage(error) })
+      // Remove the stalled progress entry on error
+      set((state) => {
+        const { [modelId]: _, ...rest } = state.downloadProgressByModel
+        return { downloadProgressByModel: rest }
+      })
+    }
+  },
+
+  downloadActiveModel: async () => {
+    await get().downloadModel(get().activeModelId)
+  },
+
+  cancelDownload: async (modelId: string) => {
+    try {
+      await cancelModelPull(modelId)
+    } catch (error) {
+      set({ modelError: getErrorMessage(error) })
+    }
   },
 
   autoSelectModel: () => {
@@ -212,15 +231,26 @@ export const useAiStore = create<AiStore>((set, get) => ({
       }))
     }
 
-    // Listen to the new Ollama pull event
     const unlistenPromise = listen<OllamaPullProgress>('model-pull-progress', (event) => {
       if (!isMounted) return
 
-      const { status, completed, total } = event.payload
-      const { activeModelId } = get() // Correlate progress to the actively downloading model
+      const { model_id, status, completed, total } = event.payload
+
+      if (status === 'cancelled' || status === 'ended') {
+        if (progressThrottleTimer) {
+          clearTimeout(progressThrottleTimer)
+          progressThrottleTimer = null
+        }
+        delete pendingProgress[model_id]
+        set((state) => {
+          const { [model_id]: _, ...rest } = state.downloadProgressByModel
+          return { downloadProgressByModel: rest }
+        })
+        return
+      }
 
       if (completed !== undefined && total !== undefined) {
-        pendingProgress[activeModelId] = { loaded: completed, total: total }
+        pendingProgress[model_id] = { loaded: completed, total }
       }
 
       if (status === 'success') {
@@ -229,12 +259,15 @@ export const useAiStore = create<AiStore>((set, get) => ({
           progressThrottleTimer = null
         }
         flushProgress()
-
-        // Mark model as downloaded in the database via an invoke command if necessary here,
-        // or ensure your Rust pull_model command updates the SQLite DB upon success.
-
+        // Remove completed entry after a short delay so the bar briefly shows 100%
+        setTimeout(() => {
+          set((state) => {
+            const { [model_id]: _, ...rest } = state.downloadProgressByModel
+            return { downloadProgressByModel: rest }
+          })
+        }, 1000)
         void get().refreshModels()
-        void get().refreshModelStatus()
+        if (model_id === get().activeModelId) void get().refreshModelStatus()
         return
       }
 

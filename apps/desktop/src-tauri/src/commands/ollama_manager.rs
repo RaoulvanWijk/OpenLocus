@@ -1,9 +1,15 @@
 use serde::Serialize;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::{command, AppHandle, Emitter, Manager};
+use tauri::{command, AppHandle, Emitter, Manager, State};
+use tokio::task::AbortHandle;
+
+use crate::commands::DbState;
 
 pub struct OllamaProcessState(pub Mutex<Option<std::process::Child>>);
+
+pub struct ActiveDownloads(pub Mutex<HashMap<String, AbortHandle>>);
 
 #[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -92,7 +98,19 @@ pub async fn list_models() -> Result<Vec<String>, String> {
 }
 
 #[command]
-pub async fn pull_model(app_handle: AppHandle, model_name: String) -> Result<(), String> {
+pub async fn pull_model(
+    app_handle: AppHandle,
+    state: State<'_, ActiveDownloads>,
+    model_id: String,
+    model_name: String,
+) -> Result<(), String> {
+    {
+        let map = state.0.lock().map_err(|_| "ActiveDownloads lock failed")?;
+        if map.contains_key(&model_id) {
+            return Ok(());
+        }
+    }
+
     let client = reqwest::Client::new();
     let mut res = client
         .post("http://localhost:11434/api/pull")
@@ -101,13 +119,85 @@ pub async fn pull_model(app_handle: AppHandle, model_name: String) -> Result<(),
         .await
         .map_err(|e| e.to_string())?;
 
-    tauri::async_runtime::spawn(async move {
+    let task_app_handle = app_handle.clone();
+    let task_model_id = model_id.clone();
+
+    let join = tokio::spawn(async move {
+        let mut succeeded = false;
         while let Ok(Some(chunk)) = res.chunk().await {
             if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&chunk) {
-                let _ = app_handle.emit("model-pull-progress", json);
+                let status = json.get("status").and_then(|v| v.as_str()).unwrap_or("");
+                let payload = serde_json::json!({
+                    "model_id": task_model_id,
+                    "status": status,
+                    "completed": json.get("completed"),
+                    "total": json.get("total"),
+                });
+                let _ = task_app_handle.emit("model-pull-progress", payload);
+
+                if status == "success" {
+                    succeeded = true;
+                    if let Some(db_state) = task_app_handle.try_state::<DbState>() {
+                        if let Ok(conn) = db_state.0.lock() {
+                            let _ = conn.execute(
+                                "UPDATE models SET downloaded = 1 WHERE id = ?1",
+                                [&task_model_id],
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        if !succeeded {
+            // Emit a terminal event so the frontend can clean up partial progress
+            // when the stream ends without a "success" (e.g. network error).
+            let _ = task_app_handle.emit(
+                "model-pull-progress",
+                serde_json::json!({
+                    "model_id": task_model_id,
+                    "status": "ended",
+                }),
+            );
+        }
+
+        if let Some(downloads) = task_app_handle.try_state::<ActiveDownloads>() {
+            if let Ok(mut map) = downloads.0.lock() {
+                map.remove(&task_model_id);
             }
         }
     });
+
+    {
+        let mut map = state.0.lock().map_err(|_| "ActiveDownloads lock failed")?;
+        map.insert(model_id, join.abort_handle());
+    }
+
+    Ok(())
+}
+
+#[command]
+pub fn cancel_model_pull(
+    app_handle: AppHandle,
+    state: State<'_, ActiveDownloads>,
+    model_id: String,
+) -> Result<(), String> {
+    let handle = {
+        let mut map = state.0.lock().map_err(|_| "ActiveDownloads lock failed")?;
+        map.remove(&model_id)
+    };
+
+    if let Some(handle) = handle {
+        handle.abort();
+    }
+
+    let _ = app_handle.emit(
+        "model-pull-progress",
+        serde_json::json!({
+            "model_id": model_id,
+            "status": "cancelled",
+        }),
+    );
 
     Ok(())
 }

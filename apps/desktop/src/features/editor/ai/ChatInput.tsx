@@ -9,7 +9,7 @@ import {
 } from '@openlocus/ui/components/select'
 import { Textarea } from '@openlocus/ui/components/textarea'
 import { useParams } from '@tanstack/react-router'
-import { File, SendIcon } from 'lucide-react'
+import { Download, File, SendIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useEditorContext } from '../hooks/use-editor-context'
 import { useAiStore } from './stores/ai-store'
@@ -25,6 +25,8 @@ export function ChatInput() {
   const activeModelId = useAiStore((s) => s.activeModelId)
   const setActiveModelId = useAiStore((s) => s.setActiveModelId)
   const downloadProgressByModel = useAiStore((s) => s.downloadProgressByModel)
+  const storeDownloadModel = useAiStore((s) => s.downloadModel)
+  const modelStatus = useAiStore((s) => s.modelStatus)
 
   const { id: currentNoteId } = useParams({ strict: false })
   const currentNote = useMemo(
@@ -85,21 +87,39 @@ export function ChatInput() {
                     progress && progress.total > 0
                       ? Math.round((progress.loaded / progress.total) * 100)
                       : null
+                  const isDownloading =
+                    progress !== undefined && (progressPercent === null || progressPercent < 100)
+                  const isDownloaded =
+                    model.downloaded || (model.id === activeModelId && modelStatus.downloaded)
 
-                  const label = progress
-                    ? `${model.name}${progressPercent !== null && progressPercent < 100 ? ` (${progressPercent}%)` : ''}`
-                    : model.downloaded
-                      ? model.name
-                      : `${model.name} (not downloaded)`
+                  // Not-downloaded, not-downloading models are rendered as a plain row
+                  // outside Radix SelectItem to keep the Download button clickable
+                  // (SelectItem applies [&_svg]:pointer-events-none which swallows the click)
+                  if (!isDownloaded && !isDownloading) {
+                    return (
+                      <div
+                        key={model.id}
+                        className="text-muted-foreground flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-xs select-none"
+                      >
+                        <span>{model.name}</span>
+                        <button
+                          className="hover:text-foreground ml-2 shrink-0"
+                          onClick={() => void storeDownloadModel(model.id)}
+                        >
+                          <Download className="size-3" />
+                        </button>
+                      </div>
+                    )
+                  }
 
                   return (
-                    <SelectItem
-                      key={model.id}
-                      value={model.id}
-                      disabled={!model.downloaded}
-                      className="text-xs"
-                    >
-                      {label}
+                    <SelectItem key={model.id} value={model.id} className="text-xs">
+                      <span className="flex items-center gap-1.5">
+                        {model.name}
+                        {isDownloading && progressPercent !== null && (
+                          <span className="text-muted-foreground">({progressPercent}%)</span>
+                        )}
+                      </span>
                     </SelectItem>
                   )
                 })
