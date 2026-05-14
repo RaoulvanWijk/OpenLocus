@@ -60,6 +60,9 @@ type AiStore = {
   sendMessage: (noteContent: string) => Promise<void>
   onInputChange: (value: string) => void
   resetChat: () => void
+  isChatOpen: boolean
+  toggleChat: () => void
+  setChatToggle: (fn: () => void, isCollapsed: boolean) => void
 
   // Internal
   maxLength: number
@@ -82,6 +85,7 @@ function createMessage(role: Message['role'], content: string): Message {
 }
 
 let activeStreamCleanup: (() => void) | null = null
+let chatToggleFn: (() => void) | null = null
 
 export const useAiStore = create<AiStore>((set, get) => ({
   // Model state
@@ -96,6 +100,7 @@ export const useAiStore = create<AiStore>((set, get) => ({
   input: '',
   isStreaming: false,
   chatError: null,
+  isChatOpen: true,
 
   maxLength: INPUT_MAX_LENGTH,
 
@@ -354,5 +359,13 @@ export const useAiStore = create<AiStore>((set, get) => ({
       chatError: null,
       isStreaming: false,
     })
+  },
+
+  toggleChat: () => {
+    if (chatToggleFn) chatToggleFn()
+  },
+  setChatToggle: (fn, isCollapsed) => {
+    chatToggleFn = fn
+    set({ isChatOpen: !isCollapsed })
   },
 }))

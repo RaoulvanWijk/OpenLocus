@@ -3,6 +3,7 @@ import { Toggle } from '@openlocus/ui/components/toggle'
 import { useEditorState, type Editor } from '@tiptap/react'
 import {
   Bold,
+  BotIcon,
   Heading1,
   Heading2,
   Heading3,
@@ -15,9 +16,12 @@ import {
   Search,
   Strikethrough,
 } from 'lucide-react'
+import { useAiStore } from './ai/stores/ai-store'
 import { findPluginKey } from './find/find-plugin'
 
 export function EditorToolbar({ editor }: { editor: Editor }) {
+  const toggleChat = useAiStore((s) => s.toggleChat)
+  const isChatOpen = useAiStore((s) => s.isChatOpen)
   const editorState = useEditorState({
     editor,
     selector: (ctx) => ({
@@ -187,6 +191,19 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       >
         <Search className="size-4" />
       </Toggle>
+
+      <div className="ml-auto">
+        <Toggle
+          size="sm"
+          pressed={isChatOpen}
+          aria-label="Toggle AI chat"
+          title="Toggle AI chat"
+          onPointerDown={(e) => e.preventDefault()}
+          onPressedChange={() => toggleChat()}
+        >
+          <BotIcon className="size-4" />
+        </Toggle>
+      </div>
     </div>
   )
 }

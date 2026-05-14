@@ -75,7 +75,7 @@ export function ChatInput() {
             <SelectTrigger id="model-picker" size="sm" className="shadow-none">
               <SelectValue placeholder="Select a model" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="w-64" position="popper" align="end">
               {models.length === 0 ? (
                 <div className="text-muted-foreground px-2 py-1.5 text-xs">Loading models...</div>
               ) : (
