@@ -17,6 +17,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(commands::ollama_manager::OllamaProcessState(
             std::sync::Mutex::new(None),
         ))
@@ -86,6 +87,9 @@ pub fn run() {
             commands::model_db::get_models,
             commands::model_db::get_model_status,
             commands::model_db::set_model_downloaded,
+            commands::model_db::add_custom_model,
+            commands::model_db::remove_custom_model,
+            commands::model_db::verify_custom_models,
             commands::ollama_manager::pull_model,
             commands::ollama_manager::cancel_model_pull,
             commands::ollama_manager::list_models,

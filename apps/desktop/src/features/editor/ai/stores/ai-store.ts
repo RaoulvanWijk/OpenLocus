@@ -3,14 +3,20 @@ import { listen } from '@tauri-apps/api/event'
 import { create } from 'zustand'
 import { startChatStream, type ChatMessage } from '../lib/chat'
 import {
+  addCustomModel as addCustomModelInvoke,
   cancelModelPull,
   downloadModel,
   getModelStatus,
   listModels,
+  removeCustomModel as removeCustomModelInvoke,
+  verifyCustomModels,
+  type AddCustomModelInput,
   type ModelError,
   type ModelRow,
   type ModelStatus,
 } from '../lib/model'
+
+const ACTIVE_MODEL_SETTINGS_KEY = 'active_model_id'
 
 // Constants
 const INPUT_MIN_LENGTH = 1
@@ -43,6 +49,8 @@ type AiStore = {
   modelStatus: ModelStatus
   downloadProgressByModel: Record<string, DownloadProgress>
   modelError: string | null
+  missingCustomModelIds: string[]
+  isHydrated: boolean
 
   // Chat state
   messages: Message[]
@@ -59,6 +67,9 @@ type AiStore = {
   cancelDownload: (modelId: string) => Promise<void>
   autoSelectModel: () => void
   initListeners: () => () => void
+  hydrateActiveModel: () => Promise<void>
+  addCustomModel: (input: AddCustomModelInput) => Promise<ModelRow>
+  removeCustomModel: (modelId: string) => Promise<void>
 
   // Chat actions
   sendMessage: (noteContent: string) => Promise<void>
@@ -98,6 +109,8 @@ export const useAiStore = create<AiStore>((set, get) => ({
   modelStatus: { downloaded: false, loaded: false },
   downloadProgressByModel: {},
   modelError: null,
+  missingCustomModelIds: [],
+  isHydrated: false,
 
   // Chat state
   messages: [],
@@ -126,6 +139,12 @@ export const useAiStore = create<AiStore>((set, get) => ({
       }).catch(console.error)
     }
 
+    // Persist the choice so it survives restarts
+    invoke('settings_set', {
+      key: ACTIVE_MODEL_SETTINGS_KEY,
+      value: id,
+    }).catch(console.error)
+
     void get().refreshModelStatus()
   },
 
@@ -141,8 +160,14 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
   refreshModels: async () => {
     try {
+      const missing = await verifyCustomModels().catch(() => [] as string[])
       const models = await listModels()
-      set({ models })
+      set({ models, missingCustomModelIds: missing })
+
+      if (missing.includes(get().activeModelId)) {
+        get().setActiveModelId(DEFAULT_MODEL_ID)
+      }
+
       get().autoSelectModel()
     } catch (error) {
       set({ modelError: getErrorMessage(error) })
@@ -157,6 +182,11 @@ export const useAiStore = create<AiStore>((set, get) => ({
     const model = get().models.find((m) => m.id === modelId)
     if (!model) {
       console.error('[AI Store] Model not found for ID:', modelId)
+      return
+    }
+
+    // Local .gguf custom models are imported via `ollama create` during add — no pull needed.
+    if (model.is_custom && model.file_path) {
       return
     }
 
@@ -249,7 +279,7 @@ export const useAiStore = create<AiStore>((set, get) => ({
         return
       }
 
-      if (completed !== undefined && total !== undefined) {
+      if (typeof completed === 'number' && typeof total === 'number') {
         pendingProgress[model_id] = { loaded: completed, total }
       }
 
@@ -271,7 +301,7 @@ export const useAiStore = create<AiStore>((set, get) => ({
         return
       }
 
-      if (!progressThrottleTimer && completed !== undefined) {
+      if (!progressThrottleTimer && Object.keys(pendingProgress).length > 0) {
         progressThrottleTimer = setTimeout(flushProgress, 250)
       }
     })
@@ -280,6 +310,51 @@ export const useAiStore = create<AiStore>((set, get) => ({
       isMounted = false
       if (progressThrottleTimer) clearTimeout(progressThrottleTimer)
       void unlistenPromise.then((unlisten) => unlisten())
+    }
+  },
+
+  hydrateActiveModel: async () => {
+    try {
+      const savedId = await invoke<string | null>('settings_get', {
+        key: ACTIVE_MODEL_SETTINGS_KEY,
+      })
+      if (savedId) {
+        const candidate = get().models.find((m) => m.id === savedId)
+        const usable = candidate && (!candidate.is_custom || candidate.downloaded)
+        if (usable) {
+          get().setActiveModelId(savedId)
+        }
+      }
+    } catch (error) {
+      console.error('[AI Store] hydrateActiveModel failed', error)
+    } finally {
+      set({ isHydrated: true })
+    }
+  },
+
+  addCustomModel: async (input: AddCustomModelInput) => {
+    try {
+      const row = await addCustomModelInvoke(input)
+      await get().refreshModels()
+      get().setActiveModelId(row.id)
+      return row
+    } catch (error) {
+      set({ modelError: getErrorMessage(error) })
+      throw error
+    }
+  },
+
+  removeCustomModel: async (modelId: string) => {
+    try {
+      const wasActive = get().activeModelId === modelId
+      await removeCustomModelInvoke(modelId)
+      await get().refreshModels()
+      if (wasActive) {
+        get().setActiveModelId(DEFAULT_MODEL_ID)
+      }
+    } catch (error) {
+      set({ modelError: getErrorMessage(error) })
+      throw error
     }
   },
 

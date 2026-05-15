@@ -28,13 +28,18 @@ export const ChatSidebar = () => {
   const initListeners = useAiStore((s) => s.initListeners)
   const refreshModels = useAiStore((s) => s.refreshModels)
   const refreshModelStatus = useAiStore((s) => s.refreshModelStatus)
+  const hydrateActiveModel = useAiStore((s) => s.hydrateActiveModel)
   const resetChat = useAiStore((s) => s.resetChat)
+  const missingCustomModelIds = useAiStore((s) => s.missingCustomModelIds)
 
   useEffect(() => {
-    void refreshModels()
-    void refreshModelStatus()
+    void (async () => {
+      await refreshModels()
+      await hydrateActiveModel()
+      await refreshModelStatus()
+    })()
     return initListeners()
-  }, [refreshModels, refreshModelStatus, initListeners])
+  }, [refreshModels, refreshModelStatus, initListeners, hydrateActiveModel])
 
   return (
     <ResizableSidebar minSize="14rem" defaultSize="20rem" maxSize="32rem" className="max-h-screen">
@@ -55,6 +60,12 @@ export const ChatSidebar = () => {
       </ResizableSidebarHeader>
 
       <ResizableSidebarContent className="flex h-full flex-col gap-0 overflow-hidden">
+        {missingCustomModelIds.length > 0 && (
+          <div className="border-b bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+            A custom model file is missing on disk. It has been disabled. Re-add it via the model
+            picker.
+          </div>
+        )}
         <ModelDownloadProgress />
         <MessageList />
         <ChatError />

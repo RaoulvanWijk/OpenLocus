@@ -9,9 +9,10 @@ import {
 } from '@openlocus/ui/components/select'
 import { Textarea } from '@openlocus/ui/components/textarea'
 import { useParams } from '@tanstack/react-router'
-import { Download, File, SendIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { Download, File, Plus, SendIcon, Trash2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useEditorContext } from '../hooks/use-editor-context'
+import { CustomModelDialog } from './CustomModelDialog'
 import { useAiStore } from './stores/ai-store'
 
 export function ChatInput() {
@@ -26,7 +27,9 @@ export function ChatInput() {
   const setActiveModelId = useAiStore((s) => s.setActiveModelId)
   const downloadProgressByModel = useAiStore((s) => s.downloadProgressByModel)
   const storeDownloadModel = useAiStore((s) => s.downloadModel)
+  const removeCustomModel = useAiStore((s) => s.removeCustomModel)
   const modelStatus = useAiStore((s) => s.modelStatus)
+  const [customDialogOpen, setCustomDialogOpen] = useState(false)
 
   const { id: currentNoteId } = useParams({ strict: false })
   const currentNote = useMemo(
@@ -72,12 +75,12 @@ export function ChatInput() {
         >
           {input.length} / {maxLength}
         </span>
-        <div className="flex gap-2">
+        <div className="flex min-w-0 flex-1 gap-2">
           <Select value={activeModelId} onValueChange={setActiveModelId}>
-            <SelectTrigger id="model-picker" size="sm" className="shadow-none">
+            <SelectTrigger id="model-picker" size="sm" className="min-w-0 flex-1 shadow-none">
               <SelectValue placeholder="Select a model" />
             </SelectTrigger>
-            <SelectContent className="w-64" position="popper" align="end">
+            <SelectContent className="flex w-64" position="popper" align="end">
               {models.length === 0 ? (
                 <div className="text-muted-foreground px-2 py-1.5 text-xs">Loading models...</div>
               ) : (
@@ -91,31 +94,48 @@ export function ChatInput() {
                     progress !== undefined && (progressPercent === null || progressPercent < 100)
                   const isDownloaded =
                     model.downloaded || (model.id === activeModelId && modelStatus.downloaded)
+                  const canRemove = model.is_custom && model.id !== activeModelId
 
-                  // Not-downloaded, not-downloading models are rendered as a plain row
-                  // outside Radix SelectItem to keep the Download button clickable
-                  // (SelectItem applies [&_svg]:pointer-events-none which swallows the click)
                   if (!isDownloaded && !isDownloading) {
                     return (
                       <div
                         key={model.id}
                         className="text-muted-foreground flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-xs select-none"
                       >
-                        <span>{model.name}</span>
-                        <button
-                          className="hover:text-foreground ml-2 shrink-0"
-                          onClick={() => void storeDownloadModel(model.id)}
-                        >
-                          <Download className="size-3" />
-                        </button>
+                        <span className="min-w-0 flex-1 truncate">{model.name}</span>
+                        <div className="flex items-center gap-1">
+                          {canRemove && (
+                            <button
+                              type="button"
+                              className="hover:text-destructive shrink-0"
+                              aria-label="Remove custom model"
+                              onClick={() => void removeCustomModel(model.id)}
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          )}
+                          <button
+                            className="hover:text-foreground ml-1 shrink-0"
+                            onClick={() => void storeDownloadModel(model.id)}
+                          >
+                            <Download className="size-3" />
+                          </button>
+                        </div>
                       </div>
                     )
                   }
 
                   return (
-                    <SelectItem key={model.id} value={model.id} className="text-xs">
-                      <span className="flex items-center gap-1.5">
-                        {model.name}
+                    <SelectItem
+                      key={model.id}
+                      value={model.id}
+                      className="flex text-xs [&>span]:flex [&>span]:min-w-0 [&>span]:flex-1"
+                    >
+                      <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                        <span className="min-w-0 flex-1 truncate">{model.name}</span>
+                        {model.is_custom && (
+                          <span className="text-muted-foreground text-2xs">(custom)</span>
+                        )}
                         {isDownloading && progressPercent !== null && (
                           <span className="text-muted-foreground">({progressPercent}%)</span>
                         )}
@@ -124,6 +144,19 @@ export function ChatInput() {
                   )
                 })
               )}
+              <div className="bg-border my-1 h-px" />
+              <button
+                type="button"
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setCustomDialogOpen(true)
+                }}
+                className="text-foreground hover:bg-accent flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-xs"
+              >
+                <Plus className="size-3" />
+                Add custom model
+              </button>
             </SelectContent>
           </Select>
 
@@ -132,6 +165,7 @@ export function ChatInput() {
           </Button>
         </div>
       </div>
+      <CustomModelDialog open={customDialogOpen} onOpenChange={setCustomDialogOpen} />
     </div>
   )
 }

@@ -127,13 +127,16 @@ pub async fn pull_model(
         while let Ok(Some(chunk)) = res.chunk().await {
             if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&chunk) {
                 let status = json.get("status").and_then(|v| v.as_str()).unwrap_or("");
-                let payload = serde_json::json!({
-                    "model_id": task_model_id,
-                    "status": status,
-                    "completed": json.get("completed"),
-                    "total": json.get("total"),
-                });
-                let _ = task_app_handle.emit("model-pull-progress", payload);
+                let mut payload = serde_json::Map::new();
+                payload.insert("model_id".into(), serde_json::Value::String(task_model_id.clone()));
+                payload.insert("status".into(), serde_json::Value::String(status.to_string()));
+                if let Some(completed) = json.get("completed").and_then(|v| v.as_u64()) {
+                    payload.insert("completed".into(), serde_json::Value::from(completed));
+                }
+                if let Some(total) = json.get("total").and_then(|v| v.as_u64()) {
+                    payload.insert("total".into(), serde_json::Value::from(total));
+                }
+                let _ = task_app_handle.emit("model-pull-progress", serde_json::Value::Object(payload));
 
                 if status == "success" {
                     succeeded = true;
