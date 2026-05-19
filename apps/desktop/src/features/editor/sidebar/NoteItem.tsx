@@ -15,7 +15,7 @@ import {
 import { ResizableSidebarMenuButton } from '@openlocus/ui/components/resizable-sidebar'
 import { cn } from '@openlocus/ui/lib/utils'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { MoreVertical, Trash } from 'lucide-react'
+import { EllipsisVertical, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { useEditorContext } from '../hooks/use-editor-context'
 import { formatNoteDate } from '../utils/format-date'
@@ -55,7 +55,7 @@ export default function NoteItem({ note }: NoteItemProps) {
             <span className="min-w-0 flex-1 space-y-1">
               <p
                 className={cn(
-                  'truncate text-sm whitespace-nowrap group-data-[collapsible=icon]:pl-1 group-data-[collapsible=icon]:text-clip',
+                  'mb-0 truncate text-sm whitespace-nowrap group-data-[collapsible=icon]:pl-1 group-data-[collapsible=icon]:text-clip',
                   {
                     'text-gray-400': note.title === '',
                   },
@@ -71,14 +71,14 @@ export default function NoteItem({ note }: NoteItemProps) {
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    'focus:ring-primary hidden cursor-pointer items-center justify-center rounded p-1 hover:bg-gray-200 focus:ring-2 focus:outline-none',
+                    'focus:ring-primary text-muted-foreground hover:text-foreground hidden cursor-pointer items-center justify-center rounded p-1 hover:bg-gray-200 focus:ring-2 focus:outline-none',
                     'group-data-[state=selected]/note-item:hover:bg-sidebar-accent group-hover/note-item:flex group-data-[collapsible=icon]:hidden! group-data-[state=selected]/note-item:flex',
                   )}
                   tabIndex={0}
                   aria-label="Meer opties"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MoreVertical className="size-3.5 text-gray-500" />
+                  <EllipsisVertical className="size-3.5" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuPortal>

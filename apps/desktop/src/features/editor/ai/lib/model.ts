@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
-import { listen } from '@tauri-apps/api/event'
+import { open } from '@tauri-apps/plugin-dialog'
 
 export type ModelStatus = {
   downloaded: boolean
@@ -13,10 +13,12 @@ export type ModelRow = {
   description: string
   size_gb: string
   downloaded: boolean
+  is_custom: boolean
+  file_path: string | null
 }
 
-// Ollama's specifieke pull progress event
 export type OllamaPullProgress = {
+  model_id: string
   status: string
   completed?: number
   total?: number
@@ -24,9 +26,24 @@ export type OllamaPullProgress = {
 
 export type ModelError = {
   type: 'model_error'
-  operation: 'get_status' | 'download' | 'list'
+  operation:
+    | 'get_status'
+    | 'download'
+    | 'list'
+    | 'cancel'
+    | 'add_custom'
+    | 'remove_custom'
+    | 'verify_custom'
+    | 'pick_file'
   message: string
   cause?: unknown
+}
+
+export type AddCustomModelInput = {
+  name: string
+  source:
+    | { source_type: 'gguf'; file_path: string }
+    | { source_type: 'ollama'; tag: string }
 }
 
 function toModelError(operation: ModelError['operation'], error: unknown): ModelError {
@@ -56,10 +73,8 @@ function toModelError(operation: ModelError['operation'], error: unknown): Model
   }
 }
 
-// Deze checkt in de database of hij gedownload is (of je haalt dit uit de backend)
 export async function getModelStatus(modelId: string): Promise<ModelStatus> {
   try {
-    return await invoke<ModelStatus>('get_model_status', { modelId })
     return await invoke<ModelStatus>('get_model_status', { modelId })
   } catch (error) {
     throw toModelError('get_status', error)
@@ -68,13 +83,12 @@ export async function getModelStatus(modelId: string): Promise<ModelStatus> {
 
 export async function listModels(): Promise<ModelRow[]> {
   try {
-    // Verander 'models_list' naar 'get_models'
     return await invoke<ModelRow[]>('get_models')
   } catch (error) {
     throw toModelError('list', error)
   }
 }
-// Zodat we de database kunnen updaten als de download slaagt
+
 export async function setModelDownloaded(modelId: string): Promise<void> {
   try {
     await invoke('set_model_downloaded', { modelId })
@@ -83,23 +97,59 @@ export async function setModelDownloaded(modelId: string): Promise<void> {
   }
 }
 
-export async function downloadModel(
-  modelOllamaId: string, // Vanuit ai-store.ts sturen we nu de ollama_id mee!
-  onProgress: (loaded: number, total: number) => void,
-): Promise<void> {
-  // 1. Luister naar het nieuwe Ollama-event in plaats van het oude
-  const unlisten = await listen<OllamaPullProgress>('model-pull-progress', (event) => {
-    if (event.payload.completed !== undefined && event.payload.total !== undefined) {
-      onProgress(event.payload.completed, event.payload.total)
-    }
-  })
-
+export async function downloadModel(modelId: string, modelOllamaId: string): Promise<void> {
   try {
-    // 2. Roep het NIEUWE commando aan (pull_model) met de juiste parameter (modelName)
-    await invoke('pull_model', { modelName: modelOllamaId })
+    await invoke('pull_model', { modelId, modelName: modelOllamaId })
   } catch (error) {
     throw toModelError('download', error)
-  } finally {
-    unlisten()
+  }
+}
+
+export async function cancelModelPull(modelId: string): Promise<void> {
+  try {
+    await invoke('cancel_model_pull', { modelId })
+  } catch (error) {
+    throw toModelError('cancel', error)
+  }
+}
+
+export async function addCustomModel(input: AddCustomModelInput): Promise<ModelRow> {
+  try {
+    return await invoke<ModelRow>('add_custom_model', {
+      name: input.name,
+      source: input.source,
+    })
+  } catch (error) {
+    throw toModelError('add_custom', error)
+  }
+}
+
+export async function removeCustomModel(modelId: string): Promise<void> {
+  try {
+    await invoke('remove_custom_model', { modelId })
+  } catch (error) {
+    throw toModelError('remove_custom', error)
+  }
+}
+
+export async function verifyCustomModels(): Promise<string[]> {
+  try {
+    return await invoke<string[]>('verify_custom_models')
+  } catch (error) {
+    throw toModelError('verify_custom', error)
+  }
+}
+
+export async function pickGgufFile(): Promise<string | null> {
+  try {
+    const result = await open({
+      multiple: false,
+      directory: false,
+      filters: [{ name: 'GGUF model', extensions: ['gguf'] }],
+    })
+    if (typeof result === 'string') return result
+    return null
+  } catch (error) {
+    throw toModelError('pick_file', error)
   }
 }

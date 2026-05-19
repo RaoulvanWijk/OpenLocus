@@ -8,7 +8,6 @@ import { EditorToolbar } from './EditorToolbar'
 import { Find } from './find/Find'
 import { FindExtension } from './find/FindExtension'
 import { useEditorContext } from './hooks/use-editor-context'
-import { SaveStatus } from './SaveStatus'
 
 export function Editor({ note }: { note: NoteData }) {
   const { updateNote, setSaveStatus, setActiveNoteContent } = useEditorContext()
@@ -50,7 +49,6 @@ export function Editor({ note }: { note: NoteData }) {
 
   return (
     <>
-      <SaveStatus />
       <EditorToolbar editor={editor} />
       <Find editor={editor} />
       <EditorContent className="min-w-0 flex-1" editor={editor} />
