@@ -47,9 +47,10 @@ type ResizableSidebarContextProps = {
 
 const ResizableSidebarContext = React.createContext<ResizableSidebarContextProps | null>(null)
 
-const ResizableSidebarInstanceContext = React.createContext<{ toggleSidebar: () => void } | null>(
-  null,
-)
+const ResizableSidebarInstanceContext = React.createContext<{
+  toggleSidebar: () => void
+  isCollapsed: boolean
+} | null>(null)
 
 function useResizableSidebar() {
   const context = React.useContext(ResizableSidebarContext)
@@ -256,7 +257,7 @@ function ResizableSidebar({
   }
 
   return (
-    <ResizableSidebarInstanceContext.Provider value={{ toggleSidebar }}>
+    <ResizableSidebarInstanceContext.Provider value={{ toggleSidebar, isCollapsed: localState === 'collapsed' }}>
       <ResizablePrimitive.Panel
         panelRef={localPanelRef}
         data-slot="sidebar"
@@ -743,6 +744,7 @@ export {
   ResizableSidebar,
   ResizableSidebarContent,
   ResizableSidebarContext,
+  ResizableSidebarInstanceContext,
   ResizableSidebarFooter,
   ResizableSidebarGroup,
   ResizableSidebarGroupAction,

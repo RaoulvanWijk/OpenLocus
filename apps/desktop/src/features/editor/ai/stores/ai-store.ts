@@ -3,13 +3,20 @@ import { listen } from '@tauri-apps/api/event'
 import { create } from 'zustand'
 import { startChatStream, type ChatMessage } from '../lib/chat'
 import {
+  addCustomModel as addCustomModelInvoke,
+  cancelModelPull,
   downloadModel,
   getModelStatus,
   listModels,
+  removeCustomModel as removeCustomModelInvoke,
+  verifyCustomModels,
+  type AddCustomModelInput,
   type ModelError,
   type ModelRow,
   type ModelStatus,
 } from '../lib/model'
+
+const ACTIVE_MODEL_SETTINGS_KEY = 'active_model_id'
 
 // Constants
 const INPUT_MIN_LENGTH = 1
@@ -29,6 +36,7 @@ type DownloadProgress = {
 
 // Ollama specific payload for pull progress
 type OllamaPullProgress = {
+  model_id: string
   status: string
   completed?: number
   total?: number
@@ -41,6 +49,8 @@ type AiStore = {
   modelStatus: ModelStatus
   downloadProgressByModel: Record<string, DownloadProgress>
   modelError: string | null
+  missingCustomModelIds: string[]
+  isHydrated: boolean
 
   // Chat state
   messages: Message[]
@@ -52,14 +62,22 @@ type AiStore = {
   setActiveModelId: (id: string) => void
   refreshModelStatus: () => Promise<void>
   refreshModels: () => Promise<void>
+  downloadModel: (modelId: string) => Promise<void>
   downloadActiveModel: () => Promise<void>
+  cancelDownload: (modelId: string) => Promise<void>
   autoSelectModel: () => void
   initListeners: () => () => void
+  hydrateActiveModel: () => Promise<void>
+  addCustomModel: (input: AddCustomModelInput) => Promise<ModelRow>
+  removeCustomModel: (modelId: string) => Promise<void>
 
   // Chat actions
   sendMessage: (noteContent: string) => Promise<void>
   onInputChange: (value: string) => void
   resetChat: () => void
+  isChatOpen: boolean
+  toggleChat: () => void
+  setChatToggle: (fn: () => void, isCollapsed: boolean) => void
 
   // Internal
   maxLength: number
@@ -82,6 +100,7 @@ function createMessage(role: Message['role'], content: string): Message {
 }
 
 let activeStreamCleanup: (() => void) | null = null
+let chatToggleFn: (() => void) | null = null
 
 export const useAiStore = create<AiStore>((set, get) => ({
   // Model state
@@ -90,12 +109,15 @@ export const useAiStore = create<AiStore>((set, get) => ({
   modelStatus: { downloaded: false, loaded: false },
   downloadProgressByModel: {},
   modelError: null,
+  missingCustomModelIds: [],
+  isHydrated: false,
 
   // Chat state
   messages: [],
   input: '',
   isStreaming: false,
   chatError: null,
+  isChatOpen: true,
 
   maxLength: INPUT_MAX_LENGTH,
 
@@ -105,7 +127,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
       activeModelId: id,
       modelStatus: { downloaded: false, loaded: false },
       modelError: null,
-      downloadProgressByModel: { [id]: { loaded: 0, total: 0 } },
     })
 
     // Update the LLM client configuration in the backend with the new ollama_id
@@ -117,6 +138,12 @@ export const useAiStore = create<AiStore>((set, get) => ({
         apiKey: null,
       }).catch(console.error)
     }
+
+    // Persist the choice so it survives restarts
+    invoke('settings_set', {
+      key: ACTIVE_MODEL_SETTINGS_KEY,
+      value: id,
+    }).catch(console.error)
 
     void get().refreshModelStatus()
   },
@@ -133,40 +160,67 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
   refreshModels: async () => {
     try {
+      const missing = await verifyCustomModels().catch(() => [] as string[])
       const models = await listModels()
-      set({ models })
+      set({ models, missingCustomModelIds: missing })
+
+      if (missing.includes(get().activeModelId)) {
+        get().setActiveModelId(DEFAULT_MODEL_ID)
+      }
+
       get().autoSelectModel()
     } catch (error) {
       set({ modelError: getErrorMessage(error) })
     }
   },
 
-  downloadActiveModel: async () => {
-    const { activeModelId } = get()
-
-    // 1. Forceer een refresh als er nog geen modellen zijn geladen
+  downloadModel: async (modelId: string) => {
     if (get().models.length === 0) {
       await get().refreshModels()
     }
 
-    const currentModel = get().models.find((m) => m.id === activeModelId)
-
-    if (!currentModel) {
-      console.error('[AI Store] Model not found for ID:', activeModelId)
+    const model = get().models.find((m) => m.id === modelId)
+    if (!model) {
+      console.error('[AI Store] Model not found for ID:', modelId)
       return
     }
 
-    // 2. Start de pull met de ollama_id (bijv. ministral-3:3b)
-    await downloadModel(currentModel.ollama_id, (loaded, total) => {
-      set((state) => ({
-        downloadProgressByModel: {
-          ...state.downloadProgressByModel,
-          [activeModelId]: { loaded, total },
-        },
-      }))
-    })
+    // Local .gguf custom models are imported via `ollama create` during add — no pull needed.
+    if (model.is_custom && model.file_path) {
+      return
+    }
 
-    await get().refreshModelStatus()
+    // Seed the progress entry so the UI shows the bar immediately
+    set((state) => ({
+      downloadProgressByModel: {
+        ...state.downloadProgressByModel,
+        [modelId]: { loaded: 0, total: 0 },
+      },
+      modelError: null,
+    }))
+
+    try {
+      await downloadModel(modelId, model.ollama_id)
+    } catch (error) {
+      set({ modelError: getErrorMessage(error) })
+      // Remove the stalled progress entry on error
+      set((state) => {
+        const { [modelId]: _, ...rest } = state.downloadProgressByModel
+        return { downloadProgressByModel: rest }
+      })
+    }
+  },
+
+  downloadActiveModel: async () => {
+    await get().downloadModel(get().activeModelId)
+  },
+
+  cancelDownload: async (modelId: string) => {
+    try {
+      await cancelModelPull(modelId)
+    } catch (error) {
+      set({ modelError: getErrorMessage(error) })
+    }
   },
 
   autoSelectModel: () => {
@@ -207,15 +261,26 @@ export const useAiStore = create<AiStore>((set, get) => ({
       }))
     }
 
-    // Listen to the new Ollama pull event
     const unlistenPromise = listen<OllamaPullProgress>('model-pull-progress', (event) => {
       if (!isMounted) return
 
-      const { status, completed, total } = event.payload
-      const { activeModelId } = get() // Correlate progress to the actively downloading model
+      const { model_id, status, completed, total } = event.payload
 
-      if (completed !== undefined && total !== undefined) {
-        pendingProgress[activeModelId] = { loaded: completed, total: total }
+      if (status === 'cancelled' || status === 'ended') {
+        if (progressThrottleTimer) {
+          clearTimeout(progressThrottleTimer)
+          progressThrottleTimer = null
+        }
+        delete pendingProgress[model_id]
+        set((state) => {
+          const { [model_id]: _, ...rest } = state.downloadProgressByModel
+          return { downloadProgressByModel: rest }
+        })
+        return
+      }
+
+      if (typeof completed === 'number' && typeof total === 'number') {
+        pendingProgress[model_id] = { loaded: completed, total }
       }
 
       if (status === 'success') {
@@ -224,16 +289,19 @@ export const useAiStore = create<AiStore>((set, get) => ({
           progressThrottleTimer = null
         }
         flushProgress()
-
-        // Mark model as downloaded in the database via an invoke command if necessary here,
-        // or ensure your Rust pull_model command updates the SQLite DB upon success.
-
+        // Remove completed entry after a short delay so the bar briefly shows 100%
+        setTimeout(() => {
+          set((state) => {
+            const { [model_id]: _, ...rest } = state.downloadProgressByModel
+            return { downloadProgressByModel: rest }
+          })
+        }, 1000)
         void get().refreshModels()
-        void get().refreshModelStatus()
+        if (model_id === get().activeModelId) void get().refreshModelStatus()
         return
       }
 
-      if (!progressThrottleTimer && completed !== undefined) {
+      if (!progressThrottleTimer && Object.keys(pendingProgress).length > 0) {
         progressThrottleTimer = setTimeout(flushProgress, 250)
       }
     })
@@ -242,6 +310,51 @@ export const useAiStore = create<AiStore>((set, get) => ({
       isMounted = false
       if (progressThrottleTimer) clearTimeout(progressThrottleTimer)
       void unlistenPromise.then((unlisten) => unlisten())
+    }
+  },
+
+  hydrateActiveModel: async () => {
+    try {
+      const savedId = await invoke<string | null>('settings_get', {
+        key: ACTIVE_MODEL_SETTINGS_KEY,
+      })
+      if (savedId) {
+        const candidate = get().models.find((m) => m.id === savedId)
+        const usable = candidate && (!candidate.is_custom || candidate.downloaded)
+        if (usable) {
+          get().setActiveModelId(savedId)
+        }
+      }
+    } catch (error) {
+      console.error('[AI Store] hydrateActiveModel failed', error)
+    } finally {
+      set({ isHydrated: true })
+    }
+  },
+
+  addCustomModel: async (input: AddCustomModelInput) => {
+    try {
+      const row = await addCustomModelInvoke(input)
+      await get().refreshModels()
+      get().setActiveModelId(row.id)
+      return row
+    } catch (error) {
+      set({ modelError: getErrorMessage(error) })
+      throw error
+    }
+  },
+
+  removeCustomModel: async (modelId: string) => {
+    try {
+      const wasActive = get().activeModelId === modelId
+      await removeCustomModelInvoke(modelId)
+      await get().refreshModels()
+      if (wasActive) {
+        get().setActiveModelId(DEFAULT_MODEL_ID)
+      }
+    } catch (error) {
+      set({ modelError: getErrorMessage(error) })
+      throw error
     }
   },
 
@@ -354,5 +467,13 @@ export const useAiStore = create<AiStore>((set, get) => ({
       chatError: null,
       isStreaming: false,
     })
+  },
+
+  toggleChat: () => {
+    if (chatToggleFn) chatToggleFn()
+  },
+  setChatToggle: (fn, isCollapsed) => {
+    chatToggleFn = fn
+    set({ isChatOpen: !isCollapsed })
   },
 }))

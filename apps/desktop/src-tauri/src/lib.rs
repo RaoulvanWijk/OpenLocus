@@ -18,8 +18,12 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .manage(commands::ollama_manager::OllamaProcessState(
             std::sync::Mutex::new(None),
+        ))
+        .manage(commands::ollama_manager::ActiveDownloads(
+            std::sync::Mutex::new(std::collections::HashMap::new()),
         ))
         .manage(commands::chat::LlmState::default())
         .setup(|app| {
@@ -95,7 +99,11 @@ pub fn run() {
             commands::model_db::get_models,
             commands::model_db::get_model_status,
             commands::model_db::set_model_downloaded,
+            commands::model_db::add_custom_model,
+            commands::model_db::remove_custom_model,
+            commands::model_db::verify_custom_models,
             commands::ollama_manager::pull_model,
+            commands::ollama_manager::cancel_model_pull,
             commands::ollama_manager::list_models,
             commands::ollama_manager::install_ollama,
             commands::ollama_manager::check_ollama_health,

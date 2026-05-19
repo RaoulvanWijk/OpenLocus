@@ -12,10 +12,10 @@ import { useAppForm } from './-components/form'
 const DEFAULT_MODEL_ID = 'ministral-3b'
 
 /**
- * Validatie schema dat exact de ID's van je MODELS constante in model-choice.tsx volgt.
+ * Validatie schema. Custom models krijgen een UUID-id, dus we kunnen de set niet hardcoderen.
  */
 const formSchema = z.object({
-  model: z.enum(['ministral-3b', 'llama-3.1-8b', 'phi-4']),
+  model: z.string().min(1, 'Pick a model'),
 })
 
 export const onboardingFormOpts = formOptions({

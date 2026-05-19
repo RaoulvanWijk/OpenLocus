@@ -9,6 +9,7 @@
     "opener:default",
     "process:default",
     "process:allow-restart",
+    "dialog:allow-open",
     {
       "identifier": "shell:allow-execute",
       "allow": [
@@ -26,6 +27,16 @@
           "name": "ollama",
           "cmd": "ollama",
           "args": ["serve"]
+        },
+        {
+          "name": "ollama-create",
+          "cmd": "ollama",
+          "args": ["create", { "validator": ".+" }, "-f", { "validator": ".+" }]
+        },
+        {
+          "name": "ollama-rm",
+          "cmd": "ollama",
+          "args": ["rm", { "validator": ".+" }]
         }
       ]
     }

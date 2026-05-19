@@ -23,7 +23,7 @@ export function MessageList() {
         <div className="mt-4 space-y-2 text-xs">
           <p className="text-muted-foreground text-center">Try one of these prompts:</p>
           {EXAMPLE_PROMPTS.map((prompt) => (
-            <div key={prompt} className="bg-muted rounded-md px-3 py-2 text-white">
+            <div key={prompt} className="bg-muted text-foreground rounded-md px-3 py-2">
               {prompt}
             </div>
           ))}
