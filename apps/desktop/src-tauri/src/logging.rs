@@ -27,13 +27,15 @@ pub fn init_logging() -> Result<()> {
                 EnvFilter::new("info,openlocus=debug,desktop_lib=debug,tauri=warn")
             });
 
-            let subscriber = tracing_subscriber::registry().with(env_filter).with(
-                tracing_subscriber::fmt::layer()
-                    .with_ansi(false)
-                    .with_thread_ids(true)
-                    .with_target(true)
-                    .with_writer(non_blocking),
-            );
+            let subscriber = tracing_subscriber::registry()
+                .with(env_filter)
+                .with(
+                    tracing_subscriber::fmt::layer()
+                        .with_ansi(false)
+                        .with_thread_ids(true)
+                        .with_target(true)
+                        .with_writer(non_blocking),
+                );
 
             tracing::subscriber::set_global_default(subscriber)
                 .map_err(|err| AppError::Internal(format!("Failed to initialize logger: {err}")))?;

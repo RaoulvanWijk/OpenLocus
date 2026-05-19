@@ -3,6 +3,7 @@ mod db;
 mod models;
 pub mod error;
 mod logging;
+mod sheets;
 mod utils;
 
 use tauri::Manager;
@@ -48,6 +49,7 @@ pub fn run() {
             }
             tauri::WindowEvent::Destroyed => {
                 if window.label() == "main" {
+                    // Kill Ollama background process
                     let state = window.state::<commands::ollama_manager::OllamaProcessState>();
                     let mut lock = state.0.lock().expect("Failed to lock state during shutdown");
 
@@ -65,6 +67,16 @@ pub fn run() {
                             .creation_flags(CREATE_NO_WINDOW)
                             .output();
                     }
+
+                    // Export logs to Google Sheets
+                    let log_dir = dirs_next::data_local_dir()
+                        .unwrap_or_else(|| std::path::PathBuf::from("."))
+                        .join("OpenLocus")
+                        .join("logs");
+
+                    tauri::async_runtime::block_on(async {
+                        sheets::export_to_sheets(&log_dir).await;
+                    });
                 }
             }
             _ => {}
