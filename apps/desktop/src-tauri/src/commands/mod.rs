@@ -1,5 +1,6 @@
 pub mod document;
 pub mod chat;
+pub mod hardware;
 pub mod ollama_manager;
 pub mod settings;
 pub mod splash;
