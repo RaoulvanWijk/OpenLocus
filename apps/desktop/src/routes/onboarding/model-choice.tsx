@@ -9,9 +9,10 @@ import {
 } from '@openlocus/ui/components/field'
 import { RadioGroup, RadioGroupItem } from '@openlocus/ui/components/radio-group'
 import { cn } from '@openlocus/ui/lib/utils'
+import { invoke } from '@tauri-apps/api/core'
 import { createFileRoute } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CustomModelDialog } from '../../features/editor/ai/CustomModelDialog'
 import { useAiStore } from '../../features/editor/ai/stores/ai-store'
 import { useTypedAppFormContext } from './-components/form'
@@ -21,12 +22,20 @@ export const Route = createFileRoute('/onboarding/model-choice')({
   component: RouteComponent,
 })
 
+interface SystemInfoResult {
+  logical_cores: number
+  physical_cores: number
+  total_memory_gib: number
+  available_memory_gib: number
+  recommendation: string | null
+}
+
 const MODELS = [
   {
     id: 'ministral-3b',
     name: 'Ministral 3B',
     tagline: 'Fast and lightweight. Works on most machines.',
-    recommended: true,
+    tier: 'low',
     specs: '~2.4 GB RAM · ~3 GB storage',
     capabilities: [
       'Sub-second response times',
@@ -39,7 +48,7 @@ const MODELS = [
     id: 'llama-3.1-8b',
     name: 'Llama 3.1 8B',
     tagline: 'Best balance of quality and resource usage.',
-    recommended: false,
+    tier: 'mid',
     specs: '~5.1 GB RAM · ~5 GB storage',
     capabilities: [
       'High quality output',
@@ -52,7 +61,7 @@ const MODELS = [
     id: 'phi-4',
     name: 'Phi-4 14B',
     tagline: 'Maximum output quality for powerful machines.',
-    recommended: false,
+    tier: 'high',
     specs: '~8.75 GB RAM · ~10 GB storage',
     capabilities: [
       'Best rewrite & reasoning quality',
@@ -61,7 +70,7 @@ const MODELS = [
       'Under 5s per response (with GPU)',
     ],
   },
-] as const
+]
 
 function toErrorMessage(error: unknown): string | null {
   if (typeof error === 'string') return error
@@ -78,6 +87,19 @@ function RouteComponent() {
   const customModels = storeModels.filter((m) => m.is_custom)
 
   const [customDialogOpen, setCustomDialogOpen] = useState(false)
+  const [recommendedTier, setRecommendedTier] = useState<string | null>(null)
+
+  useEffect(() => {
+    invoke<SystemInfoResult>('print_system_info')
+      .then((info) => {
+        setRecommendedTier(info.recommendation)
+        const match = MODELS.find((m) => m.tier === info.recommendation)
+        if (match && !form.state.values.model) {
+          form.setFieldValue('model', match.id)
+        }
+      })
+      .catch(console.error)
+  }, [])
 
   const handleContinue = async () => {
     const selectedModel = form.state.values.model
@@ -103,53 +125,56 @@ function RouteComponent() {
             onValueChange={(value) => field.handleChange(value)}
             className="flex flex-wrap justify-center"
           >
-            {MODELS.map((model) => (
-              <FieldLabel
-                htmlFor={model.id}
-                className={cn('w-fit! shadow-sm', {
-                  'border-primary bg-primary-foreground': model.recommended,
-                })}
-                key={model.id}
-              >
-                <Field orientation="horizontal">
-                  <FieldContent>
-                    {model.recommended && (
-                      <Badge className="group-has-data-[state=checked]/field-label:text-primary transition-none group-has-data-[state=checked]/field-label:bg-white">
-                        Recommended
-                      </Badge>
-                    )}
-                    <FieldTitle className="text-lg">{model.name}</FieldTitle>
-                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted">
-                      {model.tagline}
-                    </FieldDescription>
-                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted text-xs">
-                      {model.specs}
-                    </FieldDescription>
-                    <ul className="mt-2 flex flex-col gap-1">
-                      {model.capabilities.map((cap) => (
-                        <li
-                          key={cap}
-                          className="group-has-data-[state=checked]/field-label:text-muted text-muted-foreground flex items-start gap-2 text-xs"
-                        >
-                          <span className="mt-px">-</span>
-                          <span>{cap}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </FieldContent>
-                  <RadioGroupItem
-                    value={model.id}
-                    id={model.id}
-                    className={cn(
-                      'group-has-data-[state=checked]/field-label:[&_svg]:fill-background',
-                      {
-                        'border-background': model.recommended,
-                      },
-                    )}
-                  />
-                </Field>
-              </FieldLabel>
-            ))}
+            {MODELS.map((model) => {
+              const isRecommended = model.tier === recommendedTier
+              return (
+                <FieldLabel
+                  htmlFor={model.id}
+                  className={cn('w-fit! shadow-sm', {
+                    'border-primary bg-primary-foreground': isRecommended,
+                  })}
+                  key={model.id}
+                >
+                  <Field orientation="horizontal">
+                    <FieldContent>
+                      {isRecommended && (
+                        <Badge className="group-has-data-[state=checked]/field-label:text-primary transition-none group-has-data-[state=checked]/field-label:bg-white">
+                          Recommended
+                        </Badge>
+                      )}
+                      <FieldTitle className="text-lg">{model.name}</FieldTitle>
+                      <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted">
+                        {model.tagline}
+                      </FieldDescription>
+                      <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted text-xs">
+                        {model.specs}
+                      </FieldDescription>
+                      <ul className="mt-2 flex flex-col gap-1">
+                        {model.capabilities.map((cap) => (
+                          <li
+                            key={cap}
+                            className="group-has-data-[state=checked]/field-label:text-muted text-muted-foreground flex items-start gap-2 text-xs"
+                          >
+                            <span className="mt-px">-</span>
+                            <span>{cap}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </FieldContent>
+                    <RadioGroupItem
+                      value={model.id}
+                      id={model.id}
+                      className={cn(
+                        'group-has-data-[state=checked]/field-label:[&_svg]:fill-background',
+                        {
+                          'border-background': isRecommended,
+                        },
+                      )}
+                    />
+                  </Field>
+                </FieldLabel>
+              )
+            })}
 
             {customModels.map((model) => (
               <FieldLabel htmlFor={model.id} className="w-fit! min-w-52 shadow-sm" key={model.id}>
