@@ -10,6 +10,9 @@ import {
 import { RadioGroup, RadioGroupItem } from '@openlocus/ui/components/radio-group'
 import { cn } from '@openlocus/ui/lib/utils'
 import { createFileRoute } from '@tanstack/react-router'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { CustomModelDialog } from '../../features/editor/ai/CustomModelDialog'
 import { useAiStore } from '../../features/editor/ai/stores/ai-store'
 import { useTypedAppFormContext } from './-components/form'
 import { onboardingFormOpts } from './route'
@@ -60,8 +63,6 @@ const MODELS = [
   },
 ] as const
 
-type ModelId = (typeof MODELS)[number]['id']
-
 function toErrorMessage(error: unknown): string | null {
   if (typeof error === 'string') return error
   if (error instanceof Error) return error.message
@@ -71,21 +72,17 @@ function toErrorMessage(error: unknown): string | null {
 function RouteComponent() {
   const form = useTypedAppFormContext(onboardingFormOpts)
 
-  // NIEUW: Haal de functies uit de AI Store
   const setActiveModelId = useAiStore((s) => s.setActiveModelId)
   const downloadActiveModel = useAiStore((s) => s.downloadActiveModel)
+  const storeModels = useAiStore((s) => s.models)
+  const customModels = storeModels.filter((m) => m.is_custom)
 
-  // NIEUW: Onderschep de klik om de download te starten
+  const [customDialogOpen, setCustomDialogOpen] = useState(false)
+
   const handleContinue = async () => {
-    // 1. Zoek uit welk model de gebruiker geselecteerd heeft in het formulier
     const selectedModel = form.state.values.model
-
     if (selectedModel) {
-      // 2. Vertel de store welk model actief is
       setActiveModelId(selectedModel)
-
-      // 3. Start direct de download op de achtergrond!
-      // (We awaiten dit niet, zodat de UI direct doorgaat naar het volgende scherm)
       downloadActiveModel().catch(console.error)
     }
   }
@@ -103,7 +100,7 @@ function RouteComponent() {
         {(field) => (
           <RadioGroup
             value={field.state.value}
-            onValueChange={(value) => field.handleChange(value as ModelId)}
+            onValueChange={(value) => field.handleChange(value)}
             className="flex flex-wrap justify-center"
           >
             {MODELS.map((model) => (
@@ -153,9 +150,48 @@ function RouteComponent() {
                 </Field>
               </FieldLabel>
             ))}
+
+            {customModels.map((model) => (
+              <FieldLabel htmlFor={model.id} className="w-fit! min-w-52 shadow-sm" key={model.id}>
+                <Field orientation="horizontal">
+                  <FieldContent>
+                    <Badge className="group-has-data-[state=checked]/field-label:text-primary transition-none group-has-data-[state=checked]/field-label:bg-white">
+                      Custom model
+                    </Badge>
+                    <FieldTitle className="text-lg">{model.name}</FieldTitle>
+                    <FieldDescription className="group-has-data-[state=checked]/field-label:text-muted text-xs">
+                      {model.file_path ? 'Local .gguf file' : `Ollama: ${model.ollama_id}`}
+                    </FieldDescription>
+                  </FieldContent>
+                  <RadioGroupItem
+                    value={model.id}
+                    id={model.id}
+                    className="group-has-data-[state=checked]/field-label:[&_svg]:fill-background group-has-data-[state=checked]/field-label:[&_svg]:border-background"
+                  />
+                </Field>
+              </FieldLabel>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setCustomDialogOpen(true)}
+              className="group-has-data-[state=checked]/field-label:border-primary text-muted-foreground hover:text-foreground hover:bg-accent flex w-fit min-w-52 flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 shadow-sm transition-colors"
+            >
+              <Plus className="size-6" />
+              <span className="text-sm font-medium">Add custom model</span>
+              <span className="text-xs">Local .gguf or Ollama tag</span>
+            </button>
           </RadioGroup>
         )}
       </form.Field>
+
+      <CustomModelDialog
+        open={customDialogOpen}
+        onOpenChange={setCustomDialogOpen}
+        onAdded={(model) => {
+          form.setFieldValue('model', model.id)
+        }}
+      />
 
       <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
         {(onSubmitError) => {
@@ -166,7 +202,6 @@ function RouteComponent() {
 
       <form.Subscribe selector={(state) => state.isSubmitting}>
         {(submitting) => (
-          // NIEUW: onClick toegevoegd aan de knop
           <Button
             type="submit"
             form="onboarding-form"
