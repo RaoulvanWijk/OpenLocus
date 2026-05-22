@@ -7,12 +7,12 @@ fn bytes_to_gib(bytes: u64) -> f64 {
 }
 
 fn model_recommendation(available_memory_gib: f64) -> Option<&'static str> {
-	if available_memory_gib >= 16.0 {
-		Some("High tier model")
-	} else if available_memory_gib >= 8.0 {
-		Some("Mid tier model")
-	} else if available_memory_gib <= 4.0 {
-		Some("Lowest tier model")
+	if available_memory_gib > 16.0 {
+		Some("high")
+	} else if available_memory_gib > 8.0 {
+		Some("mid")
+	} else if available_memory_gib > 4.0 {
+		Some("low")
 	} else {
 		None
 	}
