@@ -96,6 +96,7 @@ pub fn run() {
             commands::ollama_manager::install_ollama,
             commands::ollama_manager::check_ollama_health,
             commands::splash::close_splashscreen,
+            commands::hardware::print_system_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
