@@ -1,7 +1,6 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { create } from 'zustand'
-import { startChatStream, type ChatMessage } from '../lib/chat'
 import {
   addCustomModel as addCustomModelInvoke,
   cancelModelPull,
@@ -23,8 +22,15 @@ const INPUT_MIN_LENGTH = 1
 const INPUT_MAX_LENGTH = 4000
 const NOTE_CONTEXT_CHAR_BUDGET = 12000
 const DEFAULT_MODEL_ID = 'ministral-3b'
+const TYPEWRITER_CHUNK_SIZE = 3
+const TYPEWRITER_DELAY_MS = 10
 
 // Types
+export type ChatMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 export type Message = ChatMessage & {
   id: string
 }
@@ -34,7 +40,6 @@ type DownloadProgress = {
   total: number
 }
 
-// Ollama specific payload for pull progress
 type OllamaPullProgress = {
   model_id: string
   status: string
@@ -99,7 +104,21 @@ function createMessage(role: Message['role'], content: string): Message {
   }
 }
 
-let activeStreamCleanup: (() => void) | null = null
+// Simulates a typewriter stream effect for the full agent response
+async function typewriterEffect(
+  fullResponse: string,
+  onToken: (token: string) => void,
+  isCancelled: () => boolean,
+): Promise<void> {
+  for (let i = 0; i < fullResponse.length; i += TYPEWRITER_CHUNK_SIZE) {
+    if (isCancelled()) break
+    const token = fullResponse.slice(i, i + TYPEWRITER_CHUNK_SIZE)
+    onToken(token)
+    await new Promise((resolve) => setTimeout(resolve, TYPEWRITER_DELAY_MS))
+  }
+}
+
+let cancelled = false
 let chatToggleFn: (() => void) | null = null
 
 export const useAiStore = create<AiStore>((set, get) => ({
@@ -129,7 +148,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
       modelError: null,
     })
 
-    // Update the LLM client configuration in the backend with the new ollama_id
     const currentModel = get().models.find((m) => m.id === id)
     if (currentModel) {
       invoke('set_llm_config', {
@@ -139,7 +157,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
       }).catch(console.error)
     }
 
-    // Persist the choice so it survives restarts
     invoke('settings_set', {
       key: ACTIVE_MODEL_SETTINGS_KEY,
       value: id,
@@ -150,7 +167,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
   refreshModelStatus: async () => {
     try {
-      // Assuming getModelStatus checks the database for the 'downloaded' flag
       const status = await getModelStatus(get().activeModelId)
       set({ modelStatus: status, modelError: null })
     } catch (error) {
@@ -185,12 +201,10 @@ export const useAiStore = create<AiStore>((set, get) => ({
       return
     }
 
-    // Local .gguf custom models are imported via `ollama create` during add — no pull needed.
     if (model.is_custom && model.file_path) {
       return
     }
 
-    // Seed the progress entry so the UI shows the bar immediately
     set((state) => ({
       downloadProgressByModel: {
         ...state.downloadProgressByModel,
@@ -203,7 +217,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
       await downloadModel(modelId, model.ollama_id)
     } catch (error) {
       set({ modelError: getErrorMessage(error) })
-      // Remove the stalled progress entry on error
       set((state) => {
         const { [modelId]: _, ...rest } = state.downloadProgressByModel
         return { downloadProgressByModel: rest }
@@ -289,7 +302,6 @@ export const useAiStore = create<AiStore>((set, get) => ({
           progressThrottleTimer = null
         }
         flushProgress()
-        // Remove completed entry after a short delay so the bar briefly shows 100%
         setTimeout(() => {
           set((state) => {
             const { [model_id]: _, ...rest } = state.downloadProgressByModel
@@ -364,8 +376,8 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
     if (isStreaming) return
 
-    activeStreamCleanup?.()
-    activeStreamCleanup = null
+    cancelled = true // cancel any previous typewriter still running
+    cancelled = false
 
     const normalizedText = input.trim()
     if (normalizedText.length < INPUT_MIN_LENGTH || normalizedText.length > INPUT_MAX_LENGTH) {
@@ -379,18 +391,14 @@ export const useAiStore = create<AiStore>((set, get) => ({
 
     const userMessage = createMessage('user', normalizedText)
     const assistantPlaceholder = createMessage('assistant', '')
-    const nextMessages = [...messages, userMessage, assistantPlaceholder]
-
-    set({ messages: nextMessages })
+    set({ messages: [...messages, userMessage, assistantPlaceholder] })
 
     const trimmedNoteContent =
       noteContent.length > NOTE_CONTEXT_CHAR_BUDGET
         ? noteContent.slice(0, NOTE_CONTEXT_CHAR_BUDGET)
         : noteContent
 
-    const messagesToSend = [...messages, userMessage]
-
-    // Ensure the backend knows which model to use before sending the chat
+    // Ensure the backend knows which model to use
     const currentModel = models.find((m) => m.id === activeModelId)
     if (currentModel) {
       await invoke('set_llm_config', {
@@ -400,16 +408,17 @@ export const useAiStore = create<AiStore>((set, get) => ({
       }).catch(console.error)
     }
 
-    // Call the chat command in Rust.
-    // Note: If you updated your Rust client to return the full response instead of a stream,
-    // you may need to adjust `startChatStream` in `../lib/chat` to handle a standard promise
-    // rather than a chunked stream.
-    activeStreamCleanup = await startChatStream(
-      messagesToSend,
-      trimmedNoteContent,
-      currentModel?.ollama_id ?? get().activeModelId, // modelId toevoegen
-      {
-        onToken: (token) => {
+    try {
+      // Call the agentic command — waits for the full response including any tool calls
+      const fullResponse = await invoke<string>('run_agent', {
+        userMessage: normalizedText,
+        noteContext: trimmedNoteContent || null,
+      })
+
+      // Stream the response token by token for the typewriter effect
+      await typewriterEffect(
+        fullResponse,
+        (token) => {
           set((state) => {
             const updated = [...state.messages]
             const last = updated[updated.length - 1]
@@ -422,33 +431,29 @@ export const useAiStore = create<AiStore>((set, get) => ({
             return { messages: updated }
           })
         },
-        onDone: () => {
-          activeStreamCleanup?.()
-          activeStreamCleanup = null
-          set({ isStreaming: false })
-        },
-        onError: (message) => {
-          activeStreamCleanup?.()
-          activeStreamCleanup = null
-          set((state) => {
-            const updated = [...state.messages]
-            const last = updated[updated.length - 1]
-            if (last?.role === 'assistant' && !last.content) {
-              updated[updated.length - 1] = {
-                ...last,
-                content: `Error: ${message}`,
-              }
-            }
-            return {
-              messages: updated,
-              chatError: message,
-              isStreaming: false,
-              input: userMessage.content,
-            }
-          })
-        },
-      },
-    )
+        () => cancelled,
+      )
+
+      set({ isStreaming: false })
+    } catch (error) {
+      const message = getErrorMessage(error)
+      set((state) => {
+        const updated = [...state.messages]
+        const last = updated[updated.length - 1]
+        if (last?.role === 'assistant' && !last.content) {
+          updated[updated.length - 1] = {
+            ...last,
+            content: `Error: ${message}`,
+          }
+        }
+        return {
+          messages: updated,
+          chatError: message,
+          isStreaming: false,
+          input: userMessage.content,
+        }
+      })
+    }
   },
 
   onInputChange: (value: string) => {
@@ -459,8 +464,7 @@ export const useAiStore = create<AiStore>((set, get) => ({
   },
 
   resetChat: () => {
-    activeStreamCleanup?.()
-    activeStreamCleanup = null
+    cancelled = true
     set({
       messages: [],
       input: '',
@@ -472,6 +476,7 @@ export const useAiStore = create<AiStore>((set, get) => ({
   toggleChat: () => {
     if (chatToggleFn) chatToggleFn()
   },
+
   setChatToggle: (fn, isCollapsed) => {
     chatToggleFn = fn
     set({ isChatOpen: !isCollapsed })

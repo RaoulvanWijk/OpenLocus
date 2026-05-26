@@ -3,7 +3,6 @@ mod db;
 mod models;
 pub mod error;
 mod logging;
-mod sheets;
 mod utils;
 
 use tauri::Manager;
@@ -25,7 +24,7 @@ pub fn run() {
         .manage(commands::ollama_manager::ActiveDownloads(
             std::sync::Mutex::new(std::collections::HashMap::new()),
         ))
-        .manage(commands::chat::LlmState::default())
+        .manage(commands::llm::LlmState::default())
         .setup(|app| {
             let version = app.package_info().version.to_string();
             tracing::info!(version = %version, "OpenLocus Started");
@@ -72,15 +71,6 @@ pub fn run() {
                             .output();
                     }
 
-                    // Export logs to Google Sheets
-                    let log_dir = dirs_next::data_local_dir()
-                        .unwrap_or_else(|| std::path::PathBuf::from("."))
-                        .join("OpenLocus")
-                        .join("logs");
-
-                    tauri::async_runtime::block_on(async {
-                        sheets::export_to_sheets(&log_dir).await;
-                    });
                 }
             }
             _ => {}
@@ -93,9 +83,9 @@ pub fn run() {
             commands::document::document_update,
             commands::settings::settings_get,
             commands::settings::settings_set,
-            commands::chat::chat,
-            commands::chat::get_llm_status,
-            commands::chat::set_llm_config,
+            commands::llm::get_llm_status,
+            commands::llm::set_llm_config,
+            commands::agent::run_agent,
             commands::model_db::get_models,
             commands::model_db::get_model_status,
             commands::model_db::set_model_downloaded,
